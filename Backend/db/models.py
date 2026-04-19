@@ -36,6 +36,9 @@ class Room(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(default="Doodly_room")
+    password: Optional[str] = Field(default=None)
+    is_public: bool = Field(default=False)
+
     admin_username: str = Field(foreign_key="users.username")
     users: List["User"] = Relationship(back_populates="rooms", link_model=RoomUser)
     games: List["Game"] = Relationship(back_populates="room")

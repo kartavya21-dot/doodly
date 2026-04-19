@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from db.session import create_db_and_tables
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth
+from routers import auth, room
 
 app = FastAPI()
 
@@ -26,3 +26,5 @@ app.add_middleware(
 
 # Routers
 app.include_router(auth.router)
+app.include_router(room.router)
+# app.include_router(game.router)

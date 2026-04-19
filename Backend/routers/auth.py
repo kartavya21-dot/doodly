@@ -1,15 +1,15 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from sqlmodel import select
 from db.session import SessionDep
 from db.models import User
 from schemas.auth import RegisterRequest, LoginRequest, UserResponse, TokenResponse
-from services.auth_services import hash_password, verify_password, create_access_token, create_refresh_token
+from services.auth_services import hash_password, verify_password, create_access_token, create_refresh_token, get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", response_model=UserResponse)
 async def register(user: RegisterRequest, session: SessionDep):
-    print(user)
+
     db_user = session.get(User, user.username)
 
     if db_user:
@@ -26,7 +26,7 @@ async def login(user: LoginRequest, session: SessionDep):
 
     db_user = session.get(User, user.username)
 
-    if not db_user and not verify_password(user.password, db_user.password):
+    if not db_user or not verify_password(user.password, db_user.password):
         raise HTTPException(status_code=400, detail="Incorrect username or password")
 
     access_token = create_access_token(user.username)
@@ -34,13 +34,13 @@ async def login(user: LoginRequest, session: SessionDep):
 
     return TokenResponse(access_token=access_token, refresh_token=refresh_token)
 
-@router.delete("/delete", response_model=UserResponse)
+@router.delete("/delete", response_model=UserResponse, dependencies=[Depends(get_current_user)])
 async def delete(user: LoginRequest, session: SessionDep):
     db_user = session.get(User, user.username)
 
-    if not db_user:
-        raise HTTPException(status_code=400, detail="User not found")
-    
+    if not db_user and not verify_password(user.password, db_user.password):
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+
     session.delete(db_user)
     session.commit()
 
