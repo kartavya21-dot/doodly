@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from db.session import create_db_and_tables
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth, room
+from routers import auth, room, game
 
 app = FastAPI()
 
@@ -10,10 +10,10 @@ app = FastAPI()
 async def root():
     return {"message": "Hello World"}
 
-# DB Tables
-@app.on_event("startup")
-def on_startup():
-    create_db_and_tables()
+# DB Tables # Alembic is managing
+# @app.on_event("startup")
+# def on_startup():
+#     create_db_and_tables()
 
 # CORS
 app.add_middleware(
@@ -27,4 +27,4 @@ app.add_middleware(
 # Routers
 app.include_router(auth.router)
 app.include_router(room.router)
-# app.include_router(game.router)
+app.include_router(game.router)

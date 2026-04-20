@@ -31,7 +31,7 @@ async def get_rooms(session: SessionDep):
 @router.get("/my", response_model=List[RoomResponse])
 async def get_my_rooms(session: SessionDep, user: User = Depends(get_current_user)):
     db_user = session.get(User, user.username)
-    
+
     if not db_user:
         raise HTTPException(status_code=404, detail="User not Authenticated")
     
@@ -69,4 +69,4 @@ async def get_room_user(room_id: int, session: SessionDep):
     if not db_room:
         raise HTTPException(status_code=404, detail="Room not found")
     
-    return db_room.users
+    return db_room.users 
