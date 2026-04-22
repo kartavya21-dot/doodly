@@ -1,8 +1,8 @@
-"""initial
+"""added default to game curret_player
 
-Revision ID: e379a6d4ee9f
-Revises: 
-Create Date: 2026-04-20 23:12:30.071924
+Revision ID: b6c94af830e8
+Revises: 2426afb30d99
+Create Date: 2026-04-22 23:22:50.760142
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'e379a6d4ee9f'
-down_revision: Union[str, Sequence[str], None] = None
+revision: str = 'b6c94af830e8'
+down_revision: Union[str, Sequence[str], None] = '2426afb30d99'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

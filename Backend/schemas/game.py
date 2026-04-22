@@ -5,7 +5,6 @@ from datetime import datetime
 
 class GameBase(BaseModel):
     room_id: int
-    created_at: datetime = datetime.utcnow
     total_round: int
 
 class GameCreate(GameBase):
@@ -14,15 +13,19 @@ class GameCreate(GameBase):
 class GameResponse(GameBase):
     id: int
     current_round: int
-
+    created_at: datetime
     is_started: bool
     is_ended: bool
 
-class UserGameScore(BaseModel):
+class UserGameScoreSchema(BaseModel):
     user_username: str
     game_id: int
     score: int
 
 class GameWithPlayerAndScores(GameResponse):
     players: List["UserBase"]
-    scores: List["UserGameScore"]
+    scores: List["UserGameScoreSchema"]
+
+class GameCompleteSchema(GameResponse):
+    current_player: str
+    current_word: str

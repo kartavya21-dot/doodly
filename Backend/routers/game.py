@@ -32,3 +32,4 @@ def create_game(room_id: int, game: GameCreate, session: SessionDep,  user: User
     session.refresh(db_game)
 
     return db_game
+

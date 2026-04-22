@@ -57,7 +57,7 @@ class Game(SQLModel, table=True):
     is_started: bool = Field(default=False)
     is_ended: bool = Field(default=False)
 
-    current_player: Optional[str] = Field(foreign_key="users.username")
+    current_player: Optional[str] = Field(default=None, foreign_key="users.username")
     current_word: Optional[str] = Field(default=None)
 
     room: Room = Relationship(back_populates="games")
