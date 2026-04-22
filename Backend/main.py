@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from db.session import create_db_and_tables
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth, room, game
+from routers import auth, room, game, webscocket_connection
 
 app = FastAPI()
 
@@ -28,3 +28,4 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(room.router)
 app.include_router(game.router)
+app.include_router(webscocket_connection.router)
