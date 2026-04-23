@@ -12,7 +12,7 @@ def get_room_games(room_id: int, session: SessionDep, user: User = Depends(get_c
 
     if user not in db_room.users:
         raise HTTPException(status_code=401, detail="Join the room first")
-    
+
     return db_room.games
 
 @router.post("/{room_id}", response_model=GameResponse)
@@ -32,4 +32,3 @@ def create_game(room_id: int, game: GameCreate, session: SessionDep,  user: User
     session.refresh(db_game)
 
     return db_game
-
