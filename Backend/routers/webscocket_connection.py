@@ -1,17 +1,17 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, WebSocketException
-from typing import List
+from typing import List, Dict
 from db.session import get_session, Session, engine
 from db.models import Game
 
 router = APIRouter(prefix="/ws", tags=["WebSocket"])
 
-connections:List[WebSocket] = []
+connections:Dict[str, WebSocket] = []
 
 @router.websocket("")
-async def websocket_(websocket: WebSocket, username: str, game_id: int):
+async def websocket_(websocket: WebSocket, username: str, game_id: str):
     await websocket.accept()
 
-    connections.append(websocket)
+    connections[game_id].append(websocket)
     
     try:
         while(True):
@@ -33,4 +33,4 @@ async def websocket_(websocket: WebSocket, username: str, game_id: int):
                 await conn.send_text(msg)
 
     except WebSocketDisconnect:
-        connections.remove(websocket)
+        connections[game_id].remove(websocket)
