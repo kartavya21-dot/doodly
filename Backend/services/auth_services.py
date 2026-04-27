@@ -25,7 +25,7 @@ def create_access_token(username: str):
     payload = {
         "sub": username,
         "type": "access",
-        "exp": datetime.utcnow() + timedelta(minutes=30)
+        "exp": datetime.utcnow() + timedelta(minutes=3000000)
     }
 
     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
@@ -60,3 +60,7 @@ def get_current_user(
         return user
     except:
         raise HTTPException(status_code=401, detail="Invalid token")
+    
+# eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxOTU3MjE2NDA3fQ.-30yb_YsIihmnYRxWsusFRP0Hav52puEKCFR3XNyQuQ
+# eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqb2huIiwidHlwZSI6ImFjY2VzcyIsImV4cCI6MTk1NzIxNjM0OH0.44X-kvrbIRzGg4Np43yroHrO8Sc4SNxG5U0mnOyCP1Q
+# eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzZWFuIiwidHlwZSI6ImFjY2VzcyIsImV4cCI6MTk1NzIxNjM4MH0.Pxk_z_9G2L0npFfmFhyTyjJ1dAsfGYR0CYYUDgBt9og

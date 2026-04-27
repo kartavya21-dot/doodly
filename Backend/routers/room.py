@@ -38,7 +38,7 @@ async def get_my_rooms(session: SessionDep, user: User = Depends(get_current_use
     return db_user.rooms
 
 @router.patch("/join-room", response_model=RoomResponse)
-async def join_room(session: SessionDep, room_id: RoomJoin, user: User = Depends(get_current_user)):
+async def join_room(session: SessionDep, room: RoomJoin, user: User = Depends(get_current_user)):
     
     db_room = session.get(Room, room.id)
 
