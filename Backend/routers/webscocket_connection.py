@@ -109,7 +109,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: str):
 
             # ---------------- NEXT_ROUND ----------------
             elif msg["type"] == "NEXT_ROUND":
-                with Session(session) as session:
+                with Session(engine) as session:
                     game = session.get(Game, game_id)
                     game.current_player = players_queue[game_id][0]
                     session.commit()
