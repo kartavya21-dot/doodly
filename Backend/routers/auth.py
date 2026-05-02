@@ -3,7 +3,7 @@ from sqlmodel import select
 from db.session import SessionDep
 from db.models import User
 from schemas.auth import RegisterRequest, LoginRequest, UserResponse, TokenResponse
-from services.auth_services import hash_password, verify_password, create_access_token, create_refresh_token, get_current_user
+from services.auth_services import hash_password, verify_password, create_access_token, create_refresh_token, get_current_user, decode_token
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -33,6 +33,19 @@ async def login(user: LoginRequest, session: SessionDep):
     refresh_token = create_refresh_token(user.username)
 
     return TokenResponse(access_token=access_token, refresh_token=refresh_token)
+
+@router.post("/refresh")
+async def refresh(refresh_token: str):
+    try:
+        payload = decode_token(refresh_token)
+
+        if payload.get("type") != "refresh":
+            raise HTTPException(status_code=401)
+        
+        new_access_token = create_access_token(payload["sub"])
+        return {"access_token": new_access_token}
+    except:
+        raise HTTPException(status_code=401, detail="Invalid refresh Token")
 
 @router.delete("/delete", response_model=UserResponse, dependencies=[Depends(get_current_user)])
 async def delete(user: LoginRequest, session: SessionDep):

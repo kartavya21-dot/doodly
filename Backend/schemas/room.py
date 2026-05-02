@@ -5,7 +5,6 @@ class RoomBase(BaseModel):
     is_public: bool
 
 class RoomCreate(RoomBase):
-    admin_username: str
     password: str
 
 class RoomResponse(RoomBase):
