@@ -28,6 +28,16 @@ async def get_rooms(session: SessionDep):
     rooms = session.exec(select(Room)).all()
     return rooms
 
+@router.get("/my", response_model=List[RoomResponse])
+async def get_my_rooms(session: SessionDep, user: User = Depends(get_current_user)):
+
+    db_user = session.get(User, user.username)
+
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not Authenticated")
+
+    return db_user.rooms
+
 @router.get("/{room_id}", response_model=RoomResponse)
 async def get_room_by_id(session: SessionDep, room_id: int, user: User =Depends(get_current_user)):
     db_room = session.get(Room, room_id)
@@ -39,15 +49,6 @@ async def get_room_by_id(session: SessionDep, room_id: int, user: User =Depends(
         raise HTTPException(status_code=401, detail="User not authorized to view this room")
 
     return db_room
-
-@router.get("/my", response_model=List[RoomResponse])
-async def get_my_rooms(session: SessionDep, user: User = Depends(get_current_user)):
-    db_user = session.get(User, user.username)
-
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not Authenticated")
-    
-    return db_user.rooms
 
 @router.patch("/join-room", response_model=RoomResponse)
 async def join_room(session: SessionDep, room: RoomJoin, user: User = Depends(get_current_user)):

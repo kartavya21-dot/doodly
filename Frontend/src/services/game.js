@@ -1,7 +1,7 @@
 import { api } from "./index";
 
 export const getRoomGames = async (roomId) => {
-  const response = await api.get(`/game/${roomId}`);
+  const response = await api.get(`/room/${roomId}/games`);
   return response.data;
 };
 

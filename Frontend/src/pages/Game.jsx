@@ -57,7 +57,7 @@ export default function Game() {
       <div>
         <h3>Past / Active Games</h3>
         <ul style={{ listStyleType: "none", padding: 0 }}>
-          {games.map((g) => (
+          {games?.map((g, i) => (
             <li
               key={g.id}
               style={{
