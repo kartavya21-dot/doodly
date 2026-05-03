@@ -130,7 +130,7 @@ export default function Room() {
             </span>{" "}
             | {"  "}
             <button
-              onClick={() => navigate(`/game/${r.id}`)}
+              onClick={() => navigate(`/room/${r.id}/game`)}
               className="border p-2 rounded-2xl"
             >
               Enter

@@ -9,3 +9,8 @@ export const createGame = async (roomId, gameData) => {
   const response = await api.post(`/game/${roomId}`, gameData);
   return response.data;
 };
+
+export const getGame = async (gameId) => {
+  const response = await api.get(`/game/${gameId}`);
+  return response.data;
+};

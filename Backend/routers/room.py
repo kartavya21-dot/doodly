@@ -28,6 +28,18 @@ async def get_rooms(session: SessionDep):
     rooms = session.exec(select(Room)).all()
     return rooms
 
+@router.get("/{room_id}", response_model=RoomResponse)
+async def get_room_by_id(session: SessionDep, room_id: int, user: User =Depends(get_current_user)):
+    db_room = session.get(Room, room_id)
+
+    if not db_room:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    if user not in db_room.users:
+        raise HTTPException(status_code=401, detail="User not authorized to view this room")
+
+    return db_room
+
 @router.get("/my", response_model=List[RoomResponse])
 async def get_my_rooms(session: SessionDep, user: User = Depends(get_current_user)):
     db_user = session.get(User, user.username)
@@ -70,3 +82,12 @@ async def get_room_user(room_id: int, session: SessionDep):
         raise HTTPException(status_code=404, detail="Room not found")
     
     return db_room.users 
+
+@router.get("/{room_id}/games")
+def get_room_games(room_id: int, session: SessionDep, user: User = Depends(get_current_user)):
+    db_room = session.get(Room, room_id)
+
+    if user not in db_room.users:
+        raise HTTPException(status_code=401, detail="Join the room first")
+
+    return db_room.games

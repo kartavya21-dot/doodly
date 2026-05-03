@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from schemas.user import UserBase
+from typing import List
 
 class RoomBase(BaseModel):
     name: str
@@ -9,6 +11,8 @@ class RoomCreate(RoomBase):
 
 class RoomResponse(RoomBase):
     id: int
+    admin_username: str
+    users: List["UserBase"]
 
 class RoomJoin(RoomBase):
     id: int

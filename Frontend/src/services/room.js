@@ -5,6 +5,11 @@ export const createRoom = async (roomData) => {
   return response.data;
 };
 
+export const getRoomById = async (roomId) => {
+  const response = await api.get(`/room/${roomId}`);
+  return response.data;
+};
+
 export const getRooms = async () => {
   const response = await api.get("/room");
   return response.data;

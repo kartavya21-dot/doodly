@@ -6,9 +6,8 @@ export const register = async (userData) => {
 };
 
 export const login = async (credentials) => {
-    
-    console.log("in funtion:",credentials);
-    const response = await api.post("/auth/login", credentials);
+  const response = await api.post("/auth/login", credentials);
+  localStorage.setItem("username", credentials.username);
   localStorage.setItem("access_token", response.data.access_token);
   localStorage.setItem("refresh_token", response.data.refresh_token);
   return response.data;
@@ -31,5 +30,6 @@ export const deleteAccount = async (credentials) => {
 export const logout = () => {
   localStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");
+  localStorage.removeItem("username");
   window.location.href = "/";
 };

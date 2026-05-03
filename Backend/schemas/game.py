@@ -22,6 +22,9 @@ class UserGameScoreSchema(BaseModel):
     game_id: int
     score: int
 
+class GameWithPlayers(GameResponse):
+    players: List["UserBase"]
+
 class GameWithPlayerAndScores(GameResponse):
     players: List["UserBase"]
     scores: List["UserGameScoreSchema"]
