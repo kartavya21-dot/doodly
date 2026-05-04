@@ -1,7 +1,7 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, WebSocketException
 from typing import List, Dict
 from db.session import Session, engine
-from db.models import Game, Room
+from db.models import Game, Room, User
 from services.auth_services import decode_token
 
 router = APIRouter(prefix="/ws", tags=["WebSocket"])
@@ -17,15 +17,21 @@ players_queue: Dict[str, List[str]] = {}
     }
 """
 
-async def broadcast_message(connections: List[WebSocket], websocket: WebSocket, msg, to_user: bool=False):
-    if not to_user:
-        for conn in connections:
-            if conn == websocket:
-                continue
+async def broadcast_message(connections_list, current_websocket, msg, to_user=True):
+    dead_connections = []
+    
+    for conn in connections_list:
+        if not to_user and conn == current_websocket:
+            continue
+            
+        try:
             await conn.send_json(msg)
-    else:
-        for conn in connections:
-            await conn.send_json(msg)
+        except (RuntimeError, WebSocketDisconnect):
+            dead_connections.append(conn)
+
+    for dead_conn in dead_connections:
+        if dead_conn in connections_list:
+            connections_list.remove(dead_conn)
 
 
 @router.websocket("")
@@ -57,7 +63,8 @@ async def websocket_(websocket: WebSocket, token: str, game_id: str):
             if msg["type"] == "JOIN":
                 with Session(engine) as session:
                     game: Game = session.get(Game, game_id)
-                    game.players.append(username)
+                    user: User = session.get(User, username)
+                    game.players.append(user)
                     session.add(game)
                     session.commit()
                     session.refresh(game)
@@ -71,7 +78,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: str):
                 if msg["username"] not in players_queue[game_id]:
                     players_queue[game_id].append(msg["username"])
 
-                await broadcast_message(connections[game_id], websocket, new_msg, to_user=False)
+                await broadcast_message(connections[game_id], websocket, new_msg, to_user=True)
 
             # ---------------- GUESS ----------------
             elif msg["type"] == "GUESS":
@@ -161,6 +168,15 @@ async def websocket_(websocket: WebSocket, token: str, game_id: str):
                 await broadcast_message(connections[game_id], websocket, msg, to_user=False)
 
     except WebSocketDisconnect:
+
+        with Session(engine) as session:
+            game: Game = session.get(Game, game_id)
+            if not game.is_started:
+                user: User = session.get(User, username)
+                game.players.remove(user)
+                session.commit()
+                session.refresh(game)
+
         msg = {
             "message": f"{username} lost connection.",
             "username": username,

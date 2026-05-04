@@ -37,3 +37,12 @@ def get_players(game_id: int, session: SessionDep, user: User = Depends(get_curr
         raise HTTPException(status_code=401, detail="User not authorised")
 
     return db_game
+
+@router.delete("/{game_id}/delete/{username}")
+def delete_game_user(game_id: int, username: str, session: SessionDep):
+    db_game: Game = session.get(Game, game_id)
+    db_user: User = session.get(User, username)
+    db_game.players.remove(db_user)
+    session.commit()
+    session.refresh(db_game)
+    return db_game

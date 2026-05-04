@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom'
 import { getGame } from '../services/game'
 import LobbyArea from '../component/LobbyArea'
 import { getRoomById } from '../services/room'
+import { GameSocketProvider } from '../context/GameSocketContextProvider'
 
 const Playground = () => {
     const { gameId, roomId } = useParams()
@@ -34,8 +35,10 @@ const Playground = () => {
 
   return (
     <div>
+        <GameSocketProvider gameId={gameId}>
         <Canvas/>
-        {!game?.is_started && <LobbyArea game={game} room={room}/>}
+        {game && !game?.is_started && room && <LobbyArea game={game} room={room}/>}
+        </GameSocketProvider>
     </div>
   )
 }
