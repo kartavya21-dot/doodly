@@ -5,7 +5,6 @@ import Game from "./pages/Game";
 import Playground from "./pages/Playground";
 
 export default function App() {
-  // if(localStorage.getItem('access_token') === null) return( <Auth/>);
   return (
     <Router>
       <Routes>
