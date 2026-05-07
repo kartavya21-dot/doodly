@@ -19,11 +19,11 @@ players_queue: Dict[str, List[str]] = {}
 
 async def broadcast_message(connections_list, current_websocket, msg, to_user=True):
     dead_connections = []
-    
+
     for conn in connections_list:
         if not to_user and conn == current_websocket:
             continue
-            
+
         try:
             await conn.send_json(msg)
         except (RuntimeError, WebSocketDisconnect):
@@ -84,6 +84,9 @@ async def websocket_(websocket: WebSocket, token: str, game_id: str):
             elif msg["type"] == "GUESS":
                 with Session(engine) as session:
                     game = session.get(Game, game_id)
+
+                    print(msg)
+                    print(players_queue[game_id])
 
                     if game.current_player == username:
                         await websocket.send_json(msg)

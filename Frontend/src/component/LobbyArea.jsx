@@ -1,17 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { useGameSocket } from "../context/GameSocketContextProvider";
+import React, { use, useContext, useEffect, useState } from "react";
+import { useUser } from "../context/UserContextProvider";
 
 const LobbyArea = ({ setGame, game, room }) => {
   const { socket, isConnected } = useGameSocket();
-  const [currentUser, setCurrentUser] = useState("");
-  // Renamed to clarify this is a state variable
+  const currentUser = useUser(UserContext);
   const [gamePlayersState, setGamePlayersState] = useState([]);
-  // Renamed for better clarity
   const [lobbyPlayers, setLobbyPlayers] = useState([]);
 
   useEffect(() => {
     setGamePlayersState(game?.players || []);
-    setCurrentUser(localStorage.getItem("username"));
 
     const playerList =
       room?.users?.map((player) => ({
@@ -60,7 +57,6 @@ const LobbyArea = ({ setGame, game, room }) => {
 
     if (!socketInstance) return;
 
-    // Renamed for clarity and fixed the spelling
     const handleIncomingMessage = (event) => {
       const messagePayload = JSON.parse(event.data);
 
@@ -90,6 +86,7 @@ const LobbyArea = ({ setGame, game, room }) => {
         setGame((prev) => ({
           ...prev,
           is_started: true,
+          current_player: messagePayload.username,
         }));
       }
       

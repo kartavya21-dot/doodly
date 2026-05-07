@@ -1,40 +1,36 @@
 import React, { useEffect, useState } from "react";
 import { useGameSocket } from "../context/GameSocketContextProvider";
+import { useUser } from "../context/UserContextProvider";
 
 const ChatArea = () => {
   const [messages, setMessages] = useState([]);
   const [chat, setChat] = useState("");
-  const [username, setUsername] = useState("");
-  const { socket, isConnected } = useGameSocket()
-  // Incoming messages
+  const { username } = useUser();
+  const { socket, isConnected } = useGameSocket();
+
   useEffect(() => {
-    setUsername(localStorage.getItem("username"));
     const socketInstance = socket.current;
     if (!socketInstance) return;
 
     const handleIncomingMessage = (event) => {
       const data = JSON.parse(event.data);
 
-      // Example incoming format:
-      // {
-      //   type: "CHAT",
-      //   username: "Kartavya",
-      //   message: "Hello"
-      // }
-
-      if (data.type === "GUESS") {
+      if (data.type === "GUESS" || data.type === "CHOOSE_WORD" || data.type === "WIN") {
         setMessages((prev) => [...prev, data]);
       }
     };
 
-    socketInstance.onmessage = handleIncomingMessage;
+    socketInstance.addEventListener("message", handleIncomingMessage);
 
+    return () => {
+      socketInstance.removeEventListener("message", handleIncomingMessage);
+    };
   }, [socket]);
 
   // Outgoing message
   const sendMessage = () => {
     const socketInstance = socket.current;
-    
+
     if (!socketInstance || !isConnected) {
       console.log("Socket not ready:", socketInstance?.readyState);
       return;
@@ -44,8 +40,8 @@ const ChatArea = () => {
 
     const payload = {
       type: "GUESS",
-      message: chat,
-      username: username
+      message: chat.trim(),
+      username: username,
     };
 
     socketInstance.send(JSON.stringify(payload));
@@ -76,7 +72,7 @@ const ChatArea = () => {
       >
         {messages.map((msg, idx) => (
           <div key={idx} style={{ marginBottom: "8px" }}>
-            <strong>{msg.username || "User"}:</strong> {msg.message}
+            <strong>{msg?.username || "User"}:</strong> {msg.message}
           </div>
         ))}
       </div>

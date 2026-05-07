@@ -23,6 +23,7 @@ class UserGameScoreSchema(BaseModel):
     score: int
 
 class GameWithPlayers(GameResponse):
+    current_player: str
     players: List["UserBase"]
 
 class GameWithPlayerAndScores(GameResponse):
