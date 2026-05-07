@@ -112,7 +112,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: str):
 
                             await broadcast_message(connections[game_id], websocket, new_msg, to_user=True)
                         else:
-                            await broadcast_message(connections[game_id], websocket, msg, to_user=False)
+                            await broadcast_message(connections[game_id], websocket, msg, to_user=True)
 
             # ---------------- NEXT_ROUND ----------------
             elif msg["type"] == "NEXT_ROUND":
@@ -135,6 +135,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: str):
                 with Session(engine) as session:
                     game = session.get(Game, game_id)
                     game.current_player = players_queue[game_id][0]
+                    game.is_started = True
                     session.commit()
                     session.refresh(game)
 

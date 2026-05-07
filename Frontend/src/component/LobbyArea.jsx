@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useGameSocket } from "../context/GameSocketContextProvider";
 
-const LobbyArea = ({ game, room }) => {
+const LobbyArea = ({ setGame, game, room }) => {
   const { socket, isConnected } = useGameSocket();
   const [currentUser, setCurrentUser] = useState("");
   // Renamed to clarify this is a state variable
@@ -39,6 +39,22 @@ const LobbyArea = ({ game, room }) => {
     );
   };
 
+  const handleStart = () => {
+    const socketInstance = socket.current;
+
+    if (!socketInstance || !isConnected) {
+      console.log("Socket not ready:", socketInstance?.readyState);
+      return;
+    }
+
+    socketInstance.send(
+      JSON.stringify({
+        type: "START",
+        username: currentUser,
+      }),
+    );
+  };
+
   useEffect(() => {
     const socketInstance = socket.current;
 
@@ -69,6 +85,14 @@ const LobbyArea = ({ game, room }) => {
           }),
         );
       }
+
+      if (messagePayload.type === "START") {
+        setGame((prev) => ({
+          ...prev,
+          is_started: true,
+        }));
+      }
+      
     };
 
     // Note: You may want to assign this to socketInstance.onmessage
@@ -123,7 +147,10 @@ const LobbyArea = ({ game, room }) => {
         </button>
 
         {currentUser === room?.admin_username && (
-          <button className="px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 transition-all duration-150 shadow-lg">
+          <button
+            onClick={handleStart}
+            className="px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 transition-all duration-150 shadow-lg"
+          >
             Start Game
           </button>
         )}

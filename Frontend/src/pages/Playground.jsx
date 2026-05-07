@@ -5,6 +5,7 @@ import { getGame } from '../services/game'
 import LobbyArea from '../component/LobbyArea'
 import { getRoomById } from '../services/room'
 import { GameSocketProvider } from '../context/GameSocketContextProvider'
+import ChatArea from './ChatArea'
 
 const Playground = () => {
     const { gameId, roomId } = useParams()
@@ -36,8 +37,9 @@ const Playground = () => {
   return (
     <div>
         <GameSocketProvider gameId={gameId}>
-        <Canvas/>
-        {game && !game?.is_started && room && <LobbyArea game={game} room={room}/>}
+        <Canvas game={game}/>
+        {game && !game?.is_started && room && <LobbyArea setGame={setGame} game={game} room={room}/>}
+        {game && game?.is_started && <ChatArea game={game} />}
         </GameSocketProvider>
     </div>
   )
