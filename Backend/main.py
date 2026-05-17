@@ -11,9 +11,9 @@ async def root():
     return {"message": "Hello World"}
 
 # DB Tables # Alembic is managing
-# @app.on_event("startup")
-# def on_startup():
-#     create_db_and_tables()
+@app.on_event("startup")
+def on_startup():
+    create_db_and_tables()
 
 # CORS
 app.add_middleware(

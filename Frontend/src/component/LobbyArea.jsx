@@ -1,9 +1,10 @@
 import React, { use, useContext, useEffect, useState } from "react";
 import { useUser } from "../context/UserContextProvider";
+import { useGameSocket } from "../context/GameSocketContextProvider";
 
 const LobbyArea = ({ setGame, game, room }) => {
   const { socket, isConnected } = useGameSocket();
-  const currentUser = useUser(UserContext);
+  const currentUser = useUser().username;
   const [gamePlayersState, setGamePlayersState] = useState([]);
   const [lobbyPlayers, setLobbyPlayers] = useState([]);
 

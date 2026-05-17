@@ -14,6 +14,6 @@ class RoomResponse(RoomBase):
     admin_username: str
     users: List["UserBase"]
 
-class RoomJoin(RoomBase):
-    id: int
-    password: str | None
+class RoomJoin(BaseModel):
+    room_id: int
+    password: str | None = None

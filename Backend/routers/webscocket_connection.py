@@ -1,8 +1,9 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, WebSocketException
 from typing import List, Dict
 from db.session import Session, engine
-from db.models import Game, Room, User
+from db.models import Game, Room, User, GameUser
 from services.auth_services import decode_token
+from sqlmodel import select
 
 router = APIRouter(prefix="/ws", tags=["WebSocket"])
 
@@ -16,6 +17,7 @@ players_queue: Dict[str, List[str]] = {}
         username: str
     }
 """
+
 
 async def broadcast_message(connections_list, current_websocket, msg, to_user=True):
     dead_connections = []
@@ -38,20 +40,33 @@ async def broadcast_message(connections_list, current_websocket, msg, to_user=Tr
 async def websocket_(websocket: WebSocket, token: str, game_id: str):
     payload = decode_token(token)
     username: str = payload["sub"]
+    game: Game = None
+    room: Room = None
+    if game_id not in connections:
+        connections[game_id] = []
+        players_queue[game_id] = []
 
     with Session(engine) as session:
-        game: Game = session.get(Game, game_id)
-        room: Room = session.get(Room, game.room_id)
+        game = session.get(Game, game_id)
+        room = session.get(Room, game.room_id)
 
         if username not in [user.username for user in room.users]:
             await websocket.close(code=1008, reason="Unauthorized")
             return
+        
+        if game.players:
+            gameUserUsername = session.exec(
+                select(GameUser.user_username)
+                .where(GameUser.game_id == game_id)
+                .where(GameUser.is_active)
+                .order_by(GameUser.turn)
+            ).all()
 
+            players_queue[game_id] = gameUserUsername
+        
+    print("Username: ", username)
     await websocket.accept()
 
-    if game_id not in connections:
-        connections[game_id] = []
-        players_queue[game_id] = []
 
     connections[game_id].append(websocket)
 
@@ -63,22 +78,36 @@ async def websocket_(websocket: WebSocket, token: str, game_id: str):
             if msg["type"] == "JOIN":
                 with Session(engine) as session:
                     game: Game = session.get(Game, game_id)
-                    user: User = session.get(User, username)
-                    game.players.append(user)
-                    session.add(game)
+                    playersCount: int = len(game.players)
+                    gameUser: GameUser = session.exec(select(GameUser).where(GameUser.user_username == username)).first()
+                    if gameUser:
+                        gameUser.is_active = True
+                    else:
+                        gameUser: GameUser = GameUser(
+                            user_username=username,
+                            game_id=game_id,
+                            turn=playersCount,
+                            is_active=True,
+                        )
+                    session.add(gameUser)
                     session.commit()
-                    session.refresh(game)
+                    session.refresh(gameUser)
 
                 new_msg = {
                     "message": f"{msg['username']} joined the game",
                     "username": msg["username"],
                     "type": "JOIN",
                 }
+                # print("*\n"*5)
+                # print("List: ", players_queue[game_id])
+                # print("*\n"*5)
 
                 if msg["username"] not in players_queue[game_id]:
                     players_queue[game_id].append(msg["username"])
 
-                await broadcast_message(connections[game_id], websocket, new_msg, to_user=True)
+                await broadcast_message(
+                    connections[game_id], websocket, new_msg, to_user=True
+                )
 
             # ---------------- GUESS ----------------
             elif msg["type"] == "GUESS":
@@ -113,9 +142,13 @@ async def websocket_(websocket: WebSocket, token: str, game_id: str):
                                 session.commit()
                                 session.refresh(game)
 
-                            await broadcast_message(connections[game_id], websocket, new_msg, to_user=True)
+                            await broadcast_message(
+                                connections[game_id], websocket, new_msg, to_user=True
+                            )
                         else:
-                            await broadcast_message(connections[game_id], websocket, msg, to_user=True)
+                            await broadcast_message(
+                                connections[game_id], websocket, msg, to_user=True
+                            )
 
             # ---------------- NEXT_ROUND ----------------
             elif msg["type"] == "NEXT_ROUND":
@@ -128,10 +161,12 @@ async def websocket_(websocket: WebSocket, token: str, game_id: str):
                     new_msg = {
                         "message": f"New round begins, {game.current_player} is choosing a word",
                         "username": game.current_player,
-                        "type": "NEXT_ROUND"
+                        "type": "NEXT_ROUND",
                     }
 
-                    await broadcast_message(connections[game_id], websocket, new_msg, to_user=True)
+                    await broadcast_message(
+                        connections[game_id], websocket, new_msg, to_user=True
+                    )
 
             # ---------------- START ----------------
             elif msg["type"] == "START":
@@ -148,7 +183,9 @@ async def websocket_(websocket: WebSocket, token: str, game_id: str):
                         "type": "START",
                     }
 
-                    await broadcast_message(connections[game_id], websocket, new_msg, to_user=True)
+                    await broadcast_message(
+                        connections[game_id], websocket, new_msg, to_user=True
+                    )
 
             # ---------------- CHOOSE-WORD ----------------
             elif msg["type"] == "CHOOSE_WORD":
@@ -165,21 +202,31 @@ async def websocket_(websocket: WebSocket, token: str, game_id: str):
                         "type": "CHOOSE_WORD",
                     }
 
-                    await broadcast_message(connections[game_id], websocket, new_msg, to_user=True)
+                    await broadcast_message(
+                        connections[game_id], websocket, new_msg, to_user=True
+                    )
 
             # ---------------- DEFAULT ----------------
             else:
-                await broadcast_message(connections[game_id], websocket, msg, to_user=False)
+                await broadcast_message(
+                    connections[game_id], websocket, msg, to_user=False
+                )
 
     except WebSocketDisconnect:
 
         with Session(engine) as session:
-            game: Game = session.get(Game, game_id)
-            if not game.is_started:
-                user: User = session.get(User, username)
-                game.players.remove(user)
-                session.commit()
-                session.refresh(game)
+            # game: Game = session.get(Game, game_id)
+            # if not game.is_started:
+            #     user: User = session.get(User, username)
+            #     game.players.remove(user)
+            #     session.commit()
+            #     session.refresh(game)
+            # else:
+            gameUser:GameUser = session.get(GameUser, (username, game_id))
+            gameUser.is_active = False
+            session.add(gameUser)
+            session.commit()
+            session.refresh(gameUser)
 
         msg = {
             "message": f"{username} lost connection.",

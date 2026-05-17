@@ -44,7 +44,7 @@ export default function Room() {
       setNewRoomName("");
       setNewRoomPassword("");
 
-      navigate(`/game/${room.id}`);
+      navigate(`room/${room.id}/game`);
     } catch (error) {
       console.error("Error creating room:", error);
     }
@@ -53,7 +53,7 @@ export default function Room() {
   const handleJoinRoom = async (e) => {
     e.preventDefault();
     try {
-      await joinRoom({ room_id: joinRoomId });
+      await joinRoom({ room_id: +joinRoomId });
       navigate(`/game/${joinRoomId}`);
     } catch (error) {
       console.error("Error joining room:", error);

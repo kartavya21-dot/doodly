@@ -14,6 +14,9 @@ class GameUser(SQLModel, table=True):
     user_username: str = Field(foreign_key="users.username", primary_key=True)
     game_id: int = Field(foreign_key="games.id", primary_key=True)
 
+    turn: int = Field(default=0)
+    is_active: bool = Field(default=True)
+
 class UserGameScore(SQLModel, table=True):
     __tablename__ = "user_game_scores"
 
