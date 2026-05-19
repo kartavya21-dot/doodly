@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from db.session import SessionDep
-from db.models import Game, User, Room
+from db.models import Game, User, Room, GameUser
 from services.auth_services import get_current_user
-from schemas.game import GameResponse, GameCreate, GameWithPlayers
+from schemas.game import GameResponse, GameCreate, GameWithPlayers, GameUserBase
+from sqlmodel import select
+from typing import List
 
 router = APIRouter(prefix="/game", tags=["Game"])
 
@@ -37,6 +39,22 @@ def get_players(game_id: int, session: SessionDep, user: User = Depends(get_curr
         raise HTTPException(status_code=401, detail="User not authorised")
 
     return db_game
+
+@router.get("/{game_id}/players", response_model=List[GameUserBase])
+def get_game_players(game_id: int, session: SessionDep, user: User = Depends(get_current_user)):
+    db_game = session.get(Game, game_id)
+
+    if not db_game:
+        raise HTTPException(status_code=404, detail="Game doesnt exist")
+    
+    db_room = session.get(Room, db_game.room_id)
+
+    if user not in db_room.users:
+        raise HTTPException(status_code=401, detail="User not authorised")
+    
+    db_game_user:List[GameUserBase] = session.exec(select(GameUser.user_username, GameUser.turn, GameUser.is_active).where(GameUser.game_id == game_id)).all()
+
+    return db_game_user
 
 @router.delete("/{game_id}/delete/{username}")
 def delete_game_user(game_id: int, username: str, session: SessionDep):

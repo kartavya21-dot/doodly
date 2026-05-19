@@ -1,24 +1,41 @@
 import React, { use, useContext, useEffect, useState } from "react";
 import { useUser } from "../context/UserContextProvider";
 import { useGameSocket } from "../context/GameSocketContextProvider";
+import { getGamePlayers } from "../services/game";
 
 const LobbyArea = ({ setGame, game, room }) => {
   const { socket, isConnected } = useGameSocket();
   const currentUser = useUser().username;
-  const [gamePlayersState, setGamePlayersState] = useState([]);
   const [lobbyPlayers, setLobbyPlayers] = useState([]);
+  const [playerWithStatus, setPlayerWithStatus] = useState([]);
+
+  const fetchGamePlayers = async () => {
+    try {
+      const gamePlayers = await getGamePlayers(game.id);
+
+      // Create lookup
+      const playerMap = gamePlayers.reduce((acc, player) => {
+        acc[player.user_username] = player;
+        return acc;
+      }, {});
+
+      // Merge room users with game data
+      const mergedPlayers = room.users.map((user) => ({
+        ...user,
+        is_active: playerMap[user.username]?.is_active ?? false,
+        turn: playerMap[user.username]?.turn ?? null,
+      }));
+
+      setLobbyPlayers(mergedPlayers);
+    } catch (error) {
+      alert(error);
+    }
+  };
 
   useEffect(() => {
-    setGamePlayersState(game?.players || []);
-
-    const playerList =
-      room?.users?.map((player) => ({
-        username: player.username,
-        isActive:
-          game?.players?.some((p) => p.username === player.username) || false,
-      })) || [];
-
-    setLobbyPlayers(playerList);
+    if (room && game) {
+      fetchGamePlayers();
+    }
   }, [room, game]);
 
   const handleJoin = () => {
@@ -65,7 +82,7 @@ const LobbyArea = ({ setGame, game, room }) => {
         setLobbyPlayers((prev) =>
           prev.map((player) => {
             if (player.username === messagePayload.username) {
-              return { ...player, isActive: true };
+              return { ...player, is_active: true };
             }
             return player;
           }),
@@ -76,7 +93,7 @@ const LobbyArea = ({ setGame, game, room }) => {
         setLobbyPlayers((prev) =>
           prev.map((player) => {
             if (player.username === messagePayload.username) {
-              return { ...player, isActive: false };
+              return { ...player, is_active: false };
             }
             return player;
           }),
@@ -90,7 +107,6 @@ const LobbyArea = ({ setGame, game, room }) => {
           current_player: messagePayload.username,
         }));
       }
-      
     };
 
     // Note: You may want to assign this to socketInstance.onmessage
@@ -110,21 +126,21 @@ const LobbyArea = ({ setGame, game, room }) => {
         </h2>
 
         <div className="flex flex-col gap-3">
-          {lobbyPlayers.map((player) => {
+          {Array.from(lobbyPlayers)?.map((player) => {
             return (
               <div
-                key={player.username}
+                key={player.user_username}
                 className="flex justify-between items-center bg-gray-800 hover:bg-gray-700 transition-all duration-200 px-4 py-3 rounded-xl"
               >
                 <h3 className="text-lg font-medium">{player.username}</h3>
 
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-400">
-                    {player.isActive ? "Online" : "Offline"}
+                    {player.is_active ? "Online" : "Offline"}
                   </span>
                   <div
                     className={`${
-                      player.isActive ? "bg-green-500" : "bg-red-500"
+                      player.is_active ? "bg-green-500" : "bg-red-500"
                     } w-3 h-3 rounded-full shadow-md`}
                   ></div>
                 </div>

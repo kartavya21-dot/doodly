@@ -54,7 +54,7 @@ export default function Room() {
     e.preventDefault();
     try {
       await joinRoom({ room_id: +joinRoomId });
-      navigate(`/game/${joinRoomId}`);
+      navigate(`room/game/${joinRoomId}`);
     } catch (error) {
       console.error("Error joining room:", error);
     }

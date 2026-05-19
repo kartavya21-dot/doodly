@@ -33,3 +33,8 @@ class GameWithPlayerAndScores(GameResponse):
 class GameCompleteSchema(GameResponse):
     current_player: str
     current_word: str
+
+class GameUserBase(BaseModel):
+    user_username: str
+    turn: int
+    is_active: bool
