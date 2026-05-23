@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useGameSocket } from "../context/GameSocketContextProvider";
 import { useUser } from "../context/UserContextProvider";
 
-const ChatArea = () => {
+const ChatArea = ({game, setGame}) => {
   const [messages, setMessages] = useState([]);
   const [chat, setChat] = useState("");
   const { username } = useUser();
@@ -15,8 +15,14 @@ const ChatArea = () => {
     const handleIncomingMessage = (event) => {
       const data = JSON.parse(event.data);
 
-      if (data.type === "GUESS" || data.type === "CHOOSE_WORD" || data.type === "WIN") {
+      if (data.type === "GUESS" || data.type === "CHOOSE_WORD" || data.type === "WIN" || data.type === "NEXT_ROUND") {
         setMessages((prev) => [...prev, data]);
+        if(data.type === "NEXT_ROUND") {
+          setGame((prev) => ({
+            ...prev,
+            current_player: data.next_player
+          }))
+        }
       }
     };
 
@@ -28,7 +34,7 @@ const ChatArea = () => {
   }, [socket]);
 
   // Outgoing message
-  const sendMessage = () => {
+  const sendMessage = (payload) => {
     const socketInstance = socket.current;
 
     if (!socketInstance || !isConnected) {
@@ -36,18 +42,26 @@ const ChatArea = () => {
       return;
     }
 
-    if (!chat.trim()) return;
+    socketInstance.send(JSON.stringify(payload));
+  };
 
+  const sendChat = () => {
+    if(!chat.trim()) return;
     const payload = {
       type: "GUESS",
       message: chat.trim(),
       username: username,
     };
-
-    socketInstance.send(JSON.stringify(payload));
-
+    sendMessage(payload);
     setChat("");
-  };
+  }
+
+  const nextRound = () => {
+    const payload = {
+      type: "NEXT_ROUND",
+    };
+    sendMessage(payload);
+  }
 
   return (
     <div
@@ -90,13 +104,19 @@ const ChatArea = () => {
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              sendMessage();
+              sendChat();
             }
           }}
         />
 
-        <button onClick={sendMessage}>Send</button>
+        <button onClick={sendChat}>Send</button>
       </div>
+      {game.current_player === username && <button style={{
+        border: "1px solid black",
+        backgroundColor: "blue"
+      }} onClick={nextRound}>
+        Next Round
+      </button>}
     </div>
   );
 };

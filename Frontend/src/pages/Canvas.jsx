@@ -32,7 +32,7 @@ const Canvas = ({ game }) => {
     };
 
     socketInstance.send(JSON.stringify(payload));
-
+    
   }
 
   return (
@@ -52,7 +52,7 @@ const Canvas = ({ game }) => {
         {game?.current_player === username && (
           <div className="w-full bg-white rounded-xl flex items-center justify-center gap-2 text-gray-400 text-lg font-medium">
             {words.map((word, idx) =>
-              <button onClick={() => setSelectedWord(word)} className="border p-2 rounded-2xl" id={idx}>
+              <button classname={`${selectedWord === word ? "bg-green-500" : "bg-blue-50"}`} onClick={() => setSelectedWord(word)} className="border p-2 rounded-2xl" id={idx}>
                 {word}
               </button>
             )}

@@ -11,6 +11,7 @@ const Playground = () => {
   const { gameId, roomId } = useParams();
   const [game, setGame] = useState(null);
   const [room, setRoom] = useState(null);
+  const [logs, setLogs] = useState([]);
 
   const fetchGame = async () => {
     try {
@@ -37,11 +38,14 @@ const Playground = () => {
   return (
     <div style={{ color: "white", background: "black" }}>
       <GameSocketProvider gameId={gameId}>
+        {game && game?.is_ended && <div>Already ended</div>}
         <Canvas game={game} />
-        {game && !game?.is_started && room && (
+        {game && !game?.is_ended && !game?.is_started && room && (
           <LobbyArea setGame={setGame} game={game} room={room} />
         )}
-        {game && game?.is_started && <ChatArea game={game} />}
+        {game && !game?.is_ended && game?.is_started && (
+          <ChatArea game={game} setGame={setGame} />
+        )}
       </GameSocketProvider>
     </div>
   );
