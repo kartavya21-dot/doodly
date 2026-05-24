@@ -19,3 +19,8 @@ export const getGamePlayers = async (gameId) => {
   const response = await api.get(`/game/${gameId}/players`);
   return response.data;
 };
+
+export const deleteGame = async (gameId) => {
+  const response = await api.delete(`/game/${gameId}/delete`);
+  return response.data;
+}

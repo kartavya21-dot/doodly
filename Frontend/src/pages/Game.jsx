@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getRoomUsers } from "../services/room";
-import { getRoomGames, createGame } from "../services/game";
+import { getRoomGames, createGame, deleteGame } from "../services/game";
 
 export default function Game() {
   const { roomId } = useParams();
@@ -39,6 +39,15 @@ export default function Game() {
       console.error("Error creating game:", error);
     }
   };
+
+  const handleDeleteGame = async (id) => {
+    try {
+      await deleteGame(id);
+      fetchRoomData(); // Refresh the list after deletion
+    } catch (error) {
+      console.error("Error deleting Game:", error);
+    }
+  }
 
   return (
   <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-6">
@@ -88,13 +97,14 @@ export default function Game() {
         {games?.map((g) => (
           <div
             key={g.id}
-            onClick={() => navigate(`${g.id}`)}
             className="cursor-pointer bg-gray-900/60 backdrop-blur-lg border border-gray-700 rounded-xl p-4 hover:bg-gray-800 transition-all duration-200 shadow-md"
           >
             <div className="flex justify-between items-center mb-2">
               <span className="font-bold text-lg">Game #{g.id}</span>
+              <button onClick={() => handleDeleteGame(g.id)}  className="font-bold text-md cursor-pointer bg-red-500 px-3 py-1 rounded-lg">Delete</button>
 
               <span
+                onClick={() => navigate(`${g.id}`)}
                 className={`text-sm font-semibold px-3 py-1 rounded-full ${
                   g.is_ended
                     ? "bg-red-500/20 text-red-400"

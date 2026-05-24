@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useGameSocket } from "../context/GameSocketContextProvider";
 import { useUser } from "../context/UserContextProvider";
 
-const ChatArea = ({game, setGame}) => {
+const ChatArea = ({setLogs, game, setGame}) => {
   const [messages, setMessages] = useState([]);
   const [chat, setChat] = useState("");
   const { username } = useUser();
@@ -14,6 +14,14 @@ const ChatArea = ({game, setGame}) => {
 
     const handleIncomingMessage = (event) => {
       const data = JSON.parse(event.data);
+
+      const newLog = {
+        ...data,
+        timestamp: Date.now(), // Adds timing anchor
+        id: crypto.randomUUID() // Safe key for React mapping
+      };
+      
+      setLogs((prevLogs) => [...prevLogs, newLog]);
 
       if (data.type === "GUESS" || data.type === "CHOOSE_WORD" || data.type === "WIN" || data.type === "NEXT_ROUND") {
         setMessages((prev) => [...prev, data]);

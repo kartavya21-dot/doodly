@@ -64,3 +64,10 @@ def delete_game_user(game_id: int, username: str, session: SessionDep):
     session.commit()
     session.refresh(db_game)
     return db_game
+
+@router.delete("/{game_id}/delete")
+def delete_game(game_id: int, session: SessionDep):
+    db_game: Game = session.get(Game, game_id)
+    session.delete(db_game)
+    session.commit()
+    return db_game

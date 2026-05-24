@@ -3,11 +3,12 @@ import { useUser } from "../context/UserContextProvider";
 import { useGameSocket } from "../context/GameSocketContextProvider";
 import { getGamePlayers } from "../services/game";
 
-const LobbyArea = ({ setGame, game, room }) => {
+const LobbyArea = ({ setLogs, setGame, game, room }) => {
   const { socket, isConnected } = useGameSocket();
   const currentUser = useUser().username;
   const [lobbyPlayers, setLobbyPlayers] = useState([]);
   const [playerWithStatus, setPlayerWithStatus] = useState([]);
+  const [joinedGame, setJoinedGame] = useState(false);
 
   const fetchGamePlayers = async () => {
     try {
@@ -78,7 +79,18 @@ const LobbyArea = ({ setGame, game, room }) => {
     const handleIncomingMessage = (event) => {
       const messagePayload = JSON.parse(event.data);
 
+        const newLog = {
+        ...messagePayload,
+        timestamp: Date.now(), // Adds timing anchor
+        id: crypto.randomUUID() // Safe key for React mapping
+      };
+      
+      setLogs((prevLogs) => [...prevLogs, newLog]);
+
       if (messagePayload.type === "JOIN") {
+        if(messagePayload.username === currentUser) {
+          setJoinedGame(true);
+        }
         setLobbyPlayers((prev) =>
           prev.map((player) => {
             if (player.username === messagePayload.username) {
@@ -154,7 +166,7 @@ const LobbyArea = ({ setGame, game, room }) => {
       <div className="flex gap-4 mt-6">
         <button
           onClick={handleJoin}
-          disabled={socket.current === null}
+          disabled={socket.current === null || joinedGame}
           className="px-6 py-2 rounded-xl bg-green-600 hover:bg-green-500 active:scale-95 transition-all duration-150 shadow-lg disabled:bg-gray-600 disabled:cursor-not-allowed"
         >
           Join

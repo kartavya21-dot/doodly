@@ -6,6 +6,7 @@ const Canvas = ({ game }) => {
   const { username } = useUser();
   const { socket, isConnected } = useGameSocket();
   const [selectedWord, setSelectedWord] = useState(null);
+  const [isSent, setIsSent] = useState(false);
   const [words, setWords] = useState([
     "apple",
     "banana",
@@ -24,7 +25,6 @@ const Canvas = ({ game }) => {
       return;
     }
 
-
     const payload = {
       type: "CHOOSE_WORD",
       current_word: selectedWord,
@@ -32,11 +32,12 @@ const Canvas = ({ game }) => {
     };
 
     socketInstance.send(JSON.stringify(payload));
-    
+
+    setIsSent(true);
   }
 
   return (
-    <div className="w-full h-[50vh] flex items-center justify-center p-4">
+    <div className="w-full h-[20vh] flex items-center justify-center p-4">
       <div className="w-full max-w-5xl h-full bg-gray-900/60 backdrop-blur-lg border border-gray-700 rounded-2xl shadow-2xl p-4 relative">
         {/* Top Bar */}
         <div className="absolute top-3 left-4 text-sm text-gray-400">
@@ -56,7 +57,7 @@ const Canvas = ({ game }) => {
                 {word}
               </button>
             )}
-            <button onClick={sendMessage} className="border p-2 rounded-2xl">Select this</button>
+            <button disabled={isSent} onClick={sendMessage} className="border p-2 rounded-2xl">Select this</button>
           </div>
         )}
       </div>
