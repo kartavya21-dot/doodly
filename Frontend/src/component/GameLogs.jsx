@@ -44,12 +44,12 @@ export default function GameLogs({ logs = [] }) {
         ref={containerRef}
         className="h-64 p-4 overflow-y-auto font-mono text-xs space-y-2.5 scroll-smooth custom-scrollbar"
       >
-        {logs.length === 0 ? (
+        {logs?.length === 0 ? (
           <div className="flex items-center justify-center h-full text-zinc-600 italic">
             Waiting for connection events...
           </div>
         ) : (
-          logs.map((log, index) => {
+          logs?.map((log, index) => {
             const badgeStyle = TYPE_STYLES[log.type] || TYPE_STYLES.DEFAULT;
             const timeString = log.timestamp 
               ? new Date(log.timestamp).toLocaleTimeString([], { hour12: false })
@@ -67,13 +67,13 @@ export default function GameLogs({ logs = [] }) {
 
                 {/* Event Type Tag */}
                 <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded border uppercase tracking-wide shrink-0 ${badgeStyle}`}>
-                  {log.type}
+                  {log?.type}
                 </span>
 
                 {/* Log Message Content */}
                 <span className="text-zinc-300 break-all leading-relaxed">
                   <span className="text-zinc-400 font-medium">{log.username}</span>
-                  {log.message.replace(log.username, '')}
+                  {log?.message?.replace(log.username, '')}
                 </span>
               </div>
             );

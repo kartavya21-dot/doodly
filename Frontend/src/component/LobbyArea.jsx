@@ -78,17 +78,17 @@ const LobbyArea = ({ setLogs, setGame, game, room }) => {
 
     const handleIncomingMessage = (event) => {
       const messagePayload = JSON.parse(event.data);
-        
-        const newLog = {
+
+      const newLog = {
         ...messagePayload,
         timestamp: Date.now(), // Adds timing anchor
-        id: crypto.randomUUID() // Safe key for React mapping
+        id: crypto.randomUUID(), // Safe key for React mapping
       };
-      
+
       setLogs((prevLogs) => [...prevLogs, newLog]);
 
       if (messagePayload.type === "JOIN") {
-        if(messagePayload.username === currentUser) {
+        if (messagePayload.username === currentUser) {
           setJoinedGame(true);
         }
         setLobbyPlayers((prev) =>
@@ -101,18 +101,18 @@ const LobbyArea = ({ setLogs, setGame, game, room }) => {
         );
       }
 
-      if(messagePayload.type === "WIN") {
+      if (messagePayload.type === "WIN") {
         setGame((prev) => ({
           ...prev,
-          current_round: current_round + 1,
+          current_round: game.current_round + 1,
         }));
       }
 
-      if(messagePayload.type === "GAME_END") {
+      if (messagePayload.type === "GAME_END") {
         setGame((prev) => ({
           ...prev,
           is_ended: true,
-        }))
+        }));
       }
 
       if (messagePayload.type === "LOST_CONNECTION") {
@@ -136,8 +136,11 @@ const LobbyArea = ({ setLogs, setGame, game, room }) => {
       console.log("Inconing lobby: ", game);
     };
 
-    // Note: You may want to assign this to socketInstance.onmessage
-    socketInstance.onmessage = handleIncomingMessage;
+    socketInstance.addEventListener("message", handleIncomingMessage);
+
+    return () => {
+      socketInstance.removeEventListener("message", handleIncomingMessage);
+    };
   }, []);
 
   return (

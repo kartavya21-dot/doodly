@@ -4,7 +4,9 @@ import { useParams } from "react-router-dom";
 import { getGame } from "../services/game";
 import LobbyArea from "../component/LobbyArea";
 import { getRoomById } from "../services/room";
-import { GameSocketProvider } from "../context/GameSocketContextProvider";
+import {
+  GameSocketProvider
+} from "../context/GameSocketContextProvider";
 import ChatArea from "./ChatArea";
 import GameLogs from "../component/GameLogs";
 
@@ -32,6 +34,10 @@ const Playground = () => {
     }
   };
 
+  useEffect(() => {
+    fetchGame();
+    fetchRoom();
+  }, [gameId, roomId])
 
   return (
     <div style={{ color: "white", background: "black" }}>
@@ -66,7 +72,6 @@ const Playground = () => {
                 </div>
               </div>
             </div>
-
             {/* Game Stats Info Grid */}
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -122,7 +127,6 @@ const Playground = () => {
                 </div>
               </div>
             </div>
-
             {/* Footer Timeline Stamp */}
             <div className="px-6 py-3 bg-gray-50 border-t border-gray-100 text-right dark:bg-gray-800/30 dark:border-gray-800">
               <span className="text-[10px] text-gray-400 dark:text-gray-500">

@@ -18,7 +18,7 @@ export function GameSocketProvider({ gameId, children }) {
 
       socketRef.current = ws;
     }
-
+  
     return () => {
       socketRef.current?.close();
       socketRef.current = null;

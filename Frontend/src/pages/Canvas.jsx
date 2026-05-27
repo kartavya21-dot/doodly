@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useUser } from "../context/UserContextProvider";
 import { useGameSocket } from "../context/GameSocketContextProvider";
 
@@ -16,6 +16,43 @@ const Canvas = ({ game }) => {
     "fig",
     "grape",
   ]);
+  const [timeLeft, setTimeLeft] = useState(0);
+
+  useEffect(() => {
+    const socketInstance = socket.current;
+    if (!socketInstance) return;
+
+    const handleIncomingMessage = (event) => {
+      const messagePayload = JSON.parse(event.data);
+
+      const newLog = {
+        ...messagePayload,
+        timestamp: Date.now(), // Adds timing anchor
+        id: crypto.randomUUID(), // Safe key for React mapping
+      };
+
+      setLogs((prevLogs) => [...prevLogs, newLog]);
+
+      if (messagePayload.type === "TIMER") {
+        setTimeLeft(messagePayload.timeLeft);
+      }
+
+      console.log("Inconing canvas: ", game);
+    };
+
+    socketInstance.addEventListener(
+        "message",
+        handleIncomingMessage
+    );
+
+    return () => {
+        socketInstance.removeEventListener(
+            "message",
+            handleIncomingMessage
+        );
+    };
+    
+  }, [socket]);
 
   const sendMessage = () => {
     const socketInstance = socket.current;
@@ -37,35 +74,95 @@ const Canvas = ({ game }) => {
   };
 
   return (
-    <div className="w-full h-[20vh] flex items-center justify-center p-4">
-      <div className="w-full max-w-5xl h-full bg-gray-900/60 backdrop-blur-lg border border-gray-700 rounded-2xl shadow-2xl p-4 relative">
-        {/* Canvas Area */}
-        <div className="w-full h-[80%] bg-white rounded-xl flex items-center justify-center text-gray-400 text-lg font-medium">
-          {!game?.is_started
-            ? "Game not started"
-            : `Current Player: ${game?.current_player}`}
+    <div className="w-full flex justify-center p-6">
+      <div className="w-full max-w-6xl bg-gray-900 rounded-3xl border border-gray-700 shadow-2xl p-6 relative overflow-hidden">
+        {/* Top section */}
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-white font-bold text-2xl">Doodly 🎨</h2>
+
+            <p className="text-gray-400 text-sm">
+              {!game?.is_started
+                ? "Waiting for game to start"
+                : `Current Player: ${game?.current_player}`}
+            </p>
+          </div>
+
+          {/* Timer */}
+          <div
+            className={`
+          w-20 h-20 rounded-full 
+          flex items-center justify-center
+          border-4 text-3xl font-bold
+          transition-all duration-500
+          ${
+            timeLeft <= 10
+              ? "border-red-500 text-red-500 animate-pulse"
+              : "border-indigo-500 text-white"
+          }
+        `}
+          >
+            {timeLeft}
+          </div>
         </div>
+
+        {/* Canvas */}
+        <div className="w-full h-[350px] rounded-2xl bg-gradient-to-br from-gray-100 to-gray-300 flex items-center justify-center shadow-inner">
+          <div className="text-center">
+            <p className="text-5xl mb-3">✏️</p>
+
+            <p className="text-gray-600 text-lg font-medium">
+              {!game?.is_started
+                ? "Game not started"
+                : `Drawing: ${game?.current_player}`}
+            </p>
+          </div>
+        </div>
+
+        {/* Word selection */}
         {game?.current_player === username && (
-          <div className="w-full bg-white rounded-xl flex items-center justify-center gap-2 text-lg font-medium">
-            {words.map((word, idx) => (
-              <button
-                className={`border p-2 rounded-2xl ${
-                  selectedWord === word
-                    ? "bg-green-500 scale-110 font-black"
-                    : "bg-blue-50 text-black"
-                }`}
-                onClick={() => setSelectedWord(word)}
-                id={idx}
-              >
-                {word}
-              </button>
-            ))}
+          <div className="mt-6">
+            <p className="text-white mb-3 font-semibold">Choose a word</p>
+
+            <div className="flex flex-wrap gap-4">
+              {words.map((word) => (
+                <button
+                  key={word}
+                  onClick={() => setSelectedWord(word)}
+                  className={`
+                  px-6 py-3 rounded-2xl
+                  transition-all duration-300
+                  font-semibold
+                  shadow-lg
+                  ${
+                    selectedWord === word
+                      ? "bg-green-500 text-white scale-110"
+                      : "bg-white text-gray-800 hover:scale-105 hover:bg-indigo-100"
+                  }
+                `}
+                >
+                  {word}
+                </button>
+              ))}
+            </div>
+
             <button
-              disabled={isSent}
+              disabled={!selectedWord || isSent}
               onClick={sendMessage}
-              className="border p-2 rounded-2xl"
+              className="
+              mt-6
+              px-8 py-3
+              rounded-2xl
+              bg-indigo-600
+              text-white
+              font-bold
+              hover:bg-indigo-700
+              transition-all
+              disabled:bg-gray-600
+              disabled:cursor-not-allowed
+            "
             >
-              Select this
+              {isSent ? "Sent ✓" : "Select Word"}
             </button>
           </div>
         )}
