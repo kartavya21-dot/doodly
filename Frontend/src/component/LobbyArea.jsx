@@ -78,7 +78,7 @@ const LobbyArea = ({ setLogs, setGame, game, room }) => {
 
     const handleIncomingMessage = (event) => {
       const messagePayload = JSON.parse(event.data);
-
+        
         const newLog = {
         ...messagePayload,
         timestamp: Date.now(), // Adds timing anchor
@@ -101,6 +101,20 @@ const LobbyArea = ({ setLogs, setGame, game, room }) => {
         );
       }
 
+      if(messagePayload.type === "WIN") {
+        setGame((prev) => ({
+          ...prev,
+          current_round: current_round + 1,
+        }));
+      }
+
+      if(messagePayload.type === "GAME_END") {
+        setGame((prev) => ({
+          ...prev,
+          is_ended: true,
+        }))
+      }
+
       if (messagePayload.type === "LOST_CONNECTION") {
         setLobbyPlayers((prev) =>
           prev.map((player) => {
@@ -119,6 +133,7 @@ const LobbyArea = ({ setLogs, setGame, game, room }) => {
           current_player: messagePayload.username,
         }));
       }
+      console.log("Inconing lobby: ", game);
     };
 
     // Note: You may want to assign this to socketInstance.onmessage

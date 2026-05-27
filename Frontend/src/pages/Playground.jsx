@@ -32,10 +32,6 @@ const Playground = () => {
     }
   };
 
-  useEffect(() => {
-    fetchGame();
-    fetchRoom();
-  }, [gameId, roomId]);
 
   return (
     <div style={{ color: "white", background: "black" }}>
@@ -139,14 +135,24 @@ const Playground = () => {
             </div>
           </div>
         )}
-        <GameLogs logs={logs}/>
+        <GameLogs logs={logs} />
         {game && game?.is_ended && <div>Already ended</div>}
         <Canvas game={game} />
         {game && !game?.is_ended && !game?.is_started && room && (
-          <LobbyArea setLogs={setLogs} setGame={setGame} game={game} room={room} />
+          <LobbyArea
+            setLogs={setLogs}
+            setGame={setGame}
+            game={game}
+            room={room}
+          />
         )}
         {game && !game?.is_ended && game?.is_started && (
-          <ChatArea setLogs={setLogs} game={game} setGame={setGame} />
+          <ChatArea
+            room={room}
+            setLogs={setLogs}
+            game={game}
+            setGame={setGame}
+          />
         )}
       </GameSocketProvider>
     </div>

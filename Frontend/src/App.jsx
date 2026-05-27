@@ -6,6 +6,7 @@ import Playground from "./pages/Playground";
 import { UserContextProvider } from "./context/UserContextProvider";
 
 export default function App() {
+  // if(windows.)
   return (
     <UserContextProvider>
       <Router>

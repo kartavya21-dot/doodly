@@ -44,11 +44,30 @@ import asyncio
 
 async def turn_timer(game_id, current_user: str):
     try: 
-        await asyncio.sleep(30)
+        time_left = 30
+
+        while time_left > 0:
+
+            timer_msg = {
+                "type": "TIMER",
+                "timeLeft": time_left
+            }
+
+            await broadcast_message(
+                connections[game_id],
+                None,
+                timer_msg,
+                to_user=True
+            )
+
+            await asyncio.sleep(1)
+            time_left -= 1
+
+        # await asyncio.sleep(30)
         user: PlayerInQueue = next((player for player in players_queue[game_id] if player["username"] == current_user), None)
         
         # if user is there, but not active then switch round
-        if user and not user.is_active:
+        if user and not user["is_active"]:
             msg = None
 
             with Session(engine) as session:
@@ -258,7 +277,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                     player_count = len(game.players)
                     index = game.current_round % player_count
                     current_player_username = players_queue[game_id][index]["username"]
-
+                    print("Current User: ", current_player_username)
                     game.current_player = current_player_username
                     session.commit()
                     session.refresh(game)
@@ -273,7 +292,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                         connections[game_id], websocket, new_msg, to_user=True
                     )
 
-                    turn_timers[game_id] = asyncio.create_task(turn_timer(game_id, game.current_player_username))
+                    turn_timers[game_id] = asyncio.create_task(turn_timer(game_id, game.current_player))
 
 
             # ---------------- START ----------------

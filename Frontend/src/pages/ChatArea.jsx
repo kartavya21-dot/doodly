@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useGameSocket } from "../context/GameSocketContextProvider";
 import { useUser } from "../context/UserContextProvider";
 
-const ChatArea = ({setLogs, game, setGame}) => {
+const ChatArea = ({room, setLogs, game, setGame}) => {
   const [messages, setMessages] = useState([]);
   const [chat, setChat] = useState("");
   const { username } = useUser();
@@ -28,10 +28,11 @@ const ChatArea = ({setLogs, game, setGame}) => {
         if(data.type === "NEXT_ROUND") {
           setGame((prev) => ({
             ...prev,
-            current_player: data.next_player
+            current_player: data.username
           }))
         }
       }
+      console.log("Incoming chat: ", data);
     };
 
     socketInstance.addEventListener("message", handleIncomingMessage);
@@ -119,7 +120,7 @@ const ChatArea = ({setLogs, game, setGame}) => {
 
         <button onClick={sendChat}>Send</button>
       </div>
-      {game.current_player === username && <button style={{
+      {room?.admin_username === username && <button style={{
         border: "1px solid black",
         backgroundColor: "blue"
       }} onClick={nextRound}>
