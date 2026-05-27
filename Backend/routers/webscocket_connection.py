@@ -48,11 +48,11 @@ import asyncio
 
 async def turn_timer(game_id, current_user: str):
     try:
-        time_left = 30
+        time_left = 31
 
         while time_left > 0:
 
-            timer_msg = {"type": "TIMER", "timeLeft": time_left}
+            timer_msg = {"type": "TIMER", "timeLeft": time_left - 1}
 
             await broadcast_message(connections[game_id], None, timer_msg, to_user=True)
 

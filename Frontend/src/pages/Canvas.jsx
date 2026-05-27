@@ -16,7 +16,7 @@ const Canvas = ({ game }) => {
     "fig",
     "grape",
   ]);
-  const [timeLeft, setTimeLeft] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(null);
 
   useEffect(() => {
     const socketInstance = socket.current;
@@ -25,34 +25,25 @@ const Canvas = ({ game }) => {
     const handleIncomingMessage = (event) => {
       const messagePayload = JSON.parse(event.data);
 
-      const newLog = {
-        ...messagePayload,
-        timestamp: Date.now(), // Adds timing anchor
-        id: crypto.randomUUID(), // Safe key for React mapping
-      };
-
-      setLogs((prevLogs) => [...prevLogs, newLog]);
-
       if (messagePayload.type === "TIMER") {
+        console.log("Timer received:", messagePayload.timeLeft);
+
         setTimeLeft(messagePayload.timeLeft);
       }
+      if(messagePayload.type === "WIN" || messagePayload.type === "GAME_END" || messagePayload.type === "NEXT_ROUND") {
+        setSelectedWord(null);
+        setIsSent(false);
+      }
 
-      console.log("Inconing canvas: ", game);
+      console.log("Incoming canvas:", messagePayload);
     };
 
-    socketInstance.addEventListener(
-        "message",
-        handleIncomingMessage
-    );
+    socketInstance.addEventListener("message", handleIncomingMessage);
 
     return () => {
-        socketInstance.removeEventListener(
-            "message",
-            handleIncomingMessage
-        );
+      socketInstance.removeEventListener("message", handleIncomingMessage);
     };
-    
-  }, [socket]);
+  }, [socket.current]);
 
   const sendMessage = () => {
     const socketInstance = socket.current;
@@ -91,18 +82,22 @@ const Canvas = ({ game }) => {
           {/* Timer */}
           <div
             className={`
-          w-20 h-20 rounded-full 
-          flex items-center justify-center
-          border-4 text-3xl font-bold
-          transition-all duration-500
-          ${
-            timeLeft <= 10
-              ? "border-red-500 text-red-500 animate-pulse"
-              : "border-indigo-500 text-white"
-          }
-        `}
+              min-w-[90px]
+              h-20
+              rounded-full 
+              flex items-center justify-center
+              border-4 text-xl font-bold px-4
+              transition-all duration-500
+              ${
+                timeLeft === 0
+                  ? "border-gray-500 text-gray-300"
+                  : timeLeft <= 10
+                    ? "border-red-500 text-red-500 animate-pulse"
+                    : "border-indigo-500 text-white"
+              }
+            `}
           >
-            {timeLeft}
+            {timeLeft === 0 ? "Time Ended" : timeLeft}
           </div>
         </div>
 

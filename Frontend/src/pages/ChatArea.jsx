@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useGameSocket } from "../context/GameSocketContextProvider";
 import { useUser } from "../context/UserContextProvider";
 
-const ChatArea = ({room, setLogs, game, setGame}) => {
+const ChatArea = ({ room, setLogs, game, setGame }) => {
   const [messages, setMessages] = useState([]);
   const [chat, setChat] = useState("");
   const { username } = useUser();
@@ -18,18 +18,29 @@ const ChatArea = ({room, setLogs, game, setGame}) => {
       const newLog = {
         ...data,
         timestamp: Date.now(), // Adds timing anchor
-        id: crypto.randomUUID() // Safe key for React mapping
+        id: crypto.randomUUID(), // Safe key for React mapping
       };
-      
+
       setLogs((prevLogs) => [...prevLogs, newLog]);
 
-      if (data.type === "GUESS" || data.type === "CHOOSE_WORD" || data.type === "WIN" || data.type === "NEXT_ROUND") {
+      if (
+        data.type === "GUESS" ||
+        data.type === "CHOOSE_WORD" ||
+        data.type === "WIN" ||
+        data.type === "NEXT_ROUND"
+      ) {
         setMessages((prev) => [...prev, data]);
-        if(data.type === "NEXT_ROUND") {
+        if (data.type === "NEXT_ROUND") {
           setGame((prev) => ({
             ...prev,
-            current_player: data.username
-          }))
+            current_player: data.username,
+          }));
+        }
+        if (data.type === "WIN") {
+          setGame((prev) => {
+            if (!prev) return prev;
+            return { ...prev, current_round: Number(prev.current_round) + 1 };
+          });
         }
       }
       console.log("Incoming chat: ", data);
@@ -55,7 +66,7 @@ const ChatArea = ({room, setLogs, game, setGame}) => {
   };
 
   const sendChat = () => {
-    if(!chat.trim()) return;
+    if (!chat.trim()) return;
     const payload = {
       type: "GUESS",
       message: chat.trim(),
@@ -63,14 +74,14 @@ const ChatArea = ({room, setLogs, game, setGame}) => {
     };
     sendMessage(payload);
     setChat("");
-  }
+  };
 
   const nextRound = () => {
     const payload = {
       type: "NEXT_ROUND",
     };
     sendMessage(payload);
-  }
+  };
 
   return (
     <div
@@ -120,12 +131,17 @@ const ChatArea = ({room, setLogs, game, setGame}) => {
 
         <button onClick={sendChat}>Send</button>
       </div>
-      {room?.admin_username === username && <button style={{
-        border: "1px solid black",
-        backgroundColor: "blue"
-      }} onClick={nextRound}>
-        Next Round
-      </button>}
+      {room?.admin_username === username && (
+        <button
+          style={{
+            border: "1px solid black",
+            backgroundColor: "blue",
+          }}
+          onClick={nextRound}
+        >
+          Next Round
+        </button>
+      )}
     </div>
   );
 };
