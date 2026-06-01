@@ -62,6 +62,7 @@ const Canvas = ({ game }) => {
     socketInstance.send(JSON.stringify(payload));
 
     setIsSent(true);
+    setTimeLeft(null);
   };
 
   return (
@@ -80,7 +81,7 @@ const Canvas = ({ game }) => {
           </div>
 
           {/* Timer */}
-          <div
+          {game?.current_player === username && <div
             className={`
               min-w-[90px]
               h-20
@@ -98,7 +99,7 @@ const Canvas = ({ game }) => {
             `}
           >
             {timeLeft === 0 ? "Time Ended" : timeLeft}
-          </div>
+          </div>}
         </div>
 
         {/* Canvas */}

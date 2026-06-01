@@ -34,12 +34,13 @@ const ChatArea = ({ room, setLogs, game, setGame }) => {
           setGame((prev) => ({
             ...prev,
             current_player: data.username,
+            current_round: Number(prev.current_round) + 1
           }));
         }
         if (data.type === "WIN") {
           setGame((prev) => {
             if (!prev) return prev;
-            return { ...prev, current_round: Number(prev.current_round) + 1 };
+            return { ...prev, round_ended: Number(prev.round_ended) + 1 };
           });
         }
       }

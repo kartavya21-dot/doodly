@@ -80,7 +80,7 @@ const Playground = () => {
                     Current Round
                   </p>
                   <p className="text-lg font-bold text-gray-800 dark:text-gray-200">
-                    {game.current_round}{" "}
+                    {game.current_round + 1}{" "}
                     <span className="text-xs font-normal text-gray-400">
                       / {game.total_round}
                     </span>

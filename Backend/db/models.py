@@ -57,6 +57,8 @@ class Game(SQLModel, table=True):
     current_round: int = Field(default=0)
     total_round: int
 
+    round_ended: int = Field(default=-1)
+
     is_started: bool = Field(default=False)
     is_ended: bool = Field(default=False)
 

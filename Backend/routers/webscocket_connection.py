@@ -237,12 +237,16 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                 with Session(engine) as session:
                     game = session.get(Game, game_id)
 
-                    if game.current_player == username:
+                    if game.current_round == game.round_ended:
+                        await broadcast_message(
+                            connections[game_id], websocket, msg, to_user=True
+                        )
+                    elif game.current_player == username:
                         await websocket.send_json(msg)
                     else:
                         # --------------- WIN ----------------
                         if game.current_word == msg["message"]:
-
+                            game.round_ended += 1
                             player_count = len(game.players)
                             index = game.current_round % player_count
                             current_player_username = players_queue[game_id][index][
@@ -262,7 +266,6 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                                 session.refresh(game)
                                 new_msg["type"] = "GAME_END"
                             else:
-                                game.current_round += 1
                                 game.current_player = current_player_username
                                 session.add(game)
                                 session.commit()
@@ -281,7 +284,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                 current_player_username = ""
                 with Session(engine) as session:
                     game = session.get(Game, game_id)
-
+                    game.current_round += 1
                     if game.current_round == game.total_round:
                         game.is_ended = True
                         session.commit()
@@ -293,29 +296,28 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                             {"type": "GAME_END"},
                             to_user=True,
                         )
-                        return
+                    else:
+                        player_count = len(game.players)
+                        index = game.current_round % player_count
+                        current_player_username = players_queue[game_id][index]["username"]
+                        print("Current User: ", current_player_username)
+                        game.current_player = current_player_username
+                        session.commit()
+                        session.refresh(game)
 
-                    player_count = len(game.players)
-                    index = game.current_round % player_count
-                    current_player_username = players_queue[game_id][index]["username"]
-                    print("Current User: ", current_player_username)
-                    game.current_player = current_player_username
-                    session.commit()
-                    session.refresh(game)
+                        new_msg = {
+                            "message": f"New round begins, {current_player_username} is choosing a word",
+                            "username": current_player_username,
+                            "type": "NEXT_ROUND",
+                        }
 
-                    new_msg = {
-                        "message": f"New round begins, {current_player_username} is choosing a word",
-                        "username": current_player_username,
-                        "type": "NEXT_ROUND",
-                    }
+                        await broadcast_message(
+                            connections[game_id], websocket, new_msg, to_user=True
+                        )
 
-                    await broadcast_message(
-                        connections[game_id], websocket, new_msg, to_user=True
-                    )
-
-                    turn_timers[game_id] = asyncio.create_task(
-                        turn_timer(game_id, game.current_player)
-                    )
+                        turn_timers[game_id] = asyncio.create_task(
+                            turn_timer(game_id, game.current_player)
+                        )
 
             # ---------------- START ----------------
             elif msg["type"] == "START":

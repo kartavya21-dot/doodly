@@ -14,6 +14,7 @@ class GameResponse(GameBase):
     id: int
     current_round: int
     created_at: datetime
+    round_ended: int
     is_started: bool
     is_ended: bool
 
