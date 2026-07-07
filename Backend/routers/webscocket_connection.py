@@ -26,7 +26,7 @@ players_queue: Dict[int, List[PlayerInQueue]] = {}
 turn_timers = {}
 
 
-async def broadcast_message(connections_list, current_websocket, msg, to_user=True):
+async def broadcast_message(connections_list: List[WebSocket], current_websocket: WebSocket, msg, to_user=True):
     dead_connections = []
 
     for conn in connections_list:
@@ -59,7 +59,6 @@ async def turn_timer(game_id, current_user: str):
             await asyncio.sleep(1)
             time_left -= 1
 
-        # await asyncio.sleep(30)
         user: PlayerInQueue = next(
             (
                 player
@@ -186,7 +185,6 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
 
                 return
 
-    print("Username: ", username)
     await websocket.accept()
 
     connections[game_id].append(websocket)
@@ -194,9 +192,6 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
     try:
         while True:
             msg = await websocket.receive_json()
-
-            print("Message recieved:", msg , "\n********\n");
-
             # ---------------- JOIN ----------------
             if msg["type"] == "JOIN":
                 with Session(engine) as session:
@@ -227,8 +222,6 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                     "username": msg["username"],
                     "type": "JOIN",
                 }
-
-                print("From join: ", players_queue[game_id])
 
                 await broadcast_message(
                     connections[game_id], websocket, new_msg, to_user=True
@@ -302,7 +295,9 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                         player_count = len(game.players)
                         index = game.current_round % player_count
                         current_player_username = players_queue[game_id][index]["username"]
+
                         print("Current User: ", current_player_username)
+                        
                         game.current_player = current_player_username
                         session.commit()
                         session.refresh(game)
@@ -325,39 +320,27 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
             elif msg["type"] == "START":
 
                 # Populating the queue from db
-                if len(players_queue[game_id]) == 0:
-                    with Session(engine) as session:
-                        game_users = session.exec(
-                            select(GameUser).where(GameUser.game_id == game_id)
-                        ).all()
+                with Session(engine) as session:
+                    game_users = session.exec(
+                        select(GameUser).where(GameUser.game_id == game_id).order_by(GameUser.turn)
+                    ).all()
 
-                        for i, user in enumerate(game_users):
-                            players_queue[game_id].append(
-                                {
-                                    "username": user.user_username,
-                                    "is_active": user.is_active,
-                                }
-                            )
+                    for i, user in enumerate(game_users):
+                        players_queue[game_id].append(
+                            {
+                                "username": user.user_username,
+                                "is_active": user.is_active,
+                            }
+                        )
 
                 print("Populated queue, in START: ", players_queue[game_id])
-
-                # This case wont happen, because if queue is (empty or no active user left) then discard the game
-                # if not current_player_username:
-                #     new_msg = {
-                #         "type": "ERROR",
-                #         "message": "No active player",
-                #     }
-                #     await broadcast_message(
-                #         connections[game_id], websocket, new_msg, to_user=True
-                #     )
-                #     return
 
                 current_player_username = None
 
                 with Session(engine) as session:
                     game = session.get(Game, game_id)
+
                     player_count = len(game.players)
-                    print(game.players, player_count)
                     index = game.current_round % player_count
                     current_player_username = players_queue[game_id][index]["username"]
 
@@ -411,11 +394,12 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                 )
 
     except WebSocketDisconnect:
+        game_is_started = False
 
         with Session(engine) as session:
             gameUser: GameUser = session.get(GameUser, (username, game_id))
-            if not gameUser:
-                return
+            game: Game = session.get(Game, game_id)
+            game_is_started = game.is_started
             gameUser.is_active = False
             session.add(gameUser)
             session.commit()
@@ -434,12 +418,10 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                 player["is_active"] = False
                 break
 
-        print("*" * 32, players_queue[game_id])
-
-        # In case where all the user left the game, midway therefore delete it
         connections[game_id].remove(websocket)
 
-        if len(connections[game_id]) == 0:
+        # In case where all the user left the game, midway therefore delete it
+        if len(connections[game_id]) == 0 and game_is_started:
 
             with Session(engine) as session:
                 game: Game = session.get(Game, game_id)
