@@ -4,9 +4,7 @@ import { useGameSocket } from "../context/GameSocketContextProvider";
 
 const Canvas = ({ game }) => {
   const { username } = useUser();
-  const { socket, isConnected } = useGameSocket();
-  const [selectedWord, setSelectedWord] = useState(null);
-  const [isSent, setIsSent] = useState(false);
+  const { socket, isConnected, selectedWord, setSelectedWord, isSent, setIsSent, timeLeft, setTimeLeft, sendMessage } = useGameSocket();
   const [words, setWords] = useState([
     "apple",
     "banana",
@@ -16,53 +14,41 @@ const Canvas = ({ game }) => {
     "fig",
     "grape",
   ]);
-  const [timeLeft, setTimeLeft] = useState(null);
 
-  useEffect(() => {
-    const socketInstance = socket.current;
-    if (!socketInstance) return;
+  // useEffect(() => {
+  //   const socketInstance = socket.current;
+  //   if (!socketInstance) return;
 
-    const handleIncomingMessage = (event) => {
-      const messagePayload = JSON.parse(event.data);
+  //   const handleIncomingMessage = (event) => {
+  //     const messagePayload = JSON.parse(event.data);
 
-      if (messagePayload.type === "TIMER") {
-        console.log("Timer received:", messagePayload.timeLeft);
+  //     if (messagePayload.type === "TIMER") {
+  //       console.log("Timer received:", messagePayload.timeLeft);
 
-        setTimeLeft(messagePayload.timeLeft);
-      }
-      if(messagePayload.type === "WIN" || messagePayload.type === "GAME_END" || messagePayload.type === "NEXT_ROUND") {
-        setSelectedWord(null);
-        setIsSent(false);
-      }
+  //       setTimeLeft(messagePayload.timeLeft);
+  //     }
+  //     if(messagePayload.type === "WIN" || messagePayload.type === "GAME_END" || messagePayload.type === "NEXT_ROUND") {
+  //       setSelectedWord(null);
+  //       setIsSent(false);
+  //     }
 
-      console.log("Incoming canvas:", messagePayload);
-    };
+  //     console.log("Incoming canvas:", messagePayload);
+  //   };
 
-    socketInstance.addEventListener("message", handleIncomingMessage);
+  //   socketInstance.addEventListener("message", handleIncomingMessage);
 
-    return () => {
-      socketInstance.removeEventListener("message", handleIncomingMessage);
-    };
-  }, [socket.current]);
+  //   return () => {
+  //     socketInstance.removeEventListener("message", handleIncomingMessage);
+  //   };
+  // }, [socket.current]);
 
-  const sendMessage = () => {
-    const socketInstance = socket.current;
-
-    if (!socketInstance || !isConnected) {
-      console.log("Socket not ready:", socketInstance?.readyState);
-      return;
-    }
-
+  const sendSelectedWord = () => {
     const payload = {
       type: "CHOOSE_WORD",
       current_word: selectedWord,
       username: username,
     };
-
-    socketInstance.send(JSON.stringify(payload));
-
-    setIsSent(true);
-    setTimeLeft(null);
+    sendMessage(payload);
   };
 
   return (
@@ -124,7 +110,7 @@ const Canvas = ({ game }) => {
               {words.map((word) => (
                 <button
                   key={word}
-                  onClick={() => setSelectedWord(word)}
+                  onClick={() =>{ console.log(word); setSelectedWord(word);}}
                   className={`
                   px-6 py-3 rounded-2xl
                   transition-all duration-300
@@ -144,7 +130,7 @@ const Canvas = ({ game }) => {
 
             <button
               disabled={!selectedWord || isSent}
-              onClick={sendMessage}
+              onClick={sendSelectedWord}
               className="
               mt-6
               px-8 py-3

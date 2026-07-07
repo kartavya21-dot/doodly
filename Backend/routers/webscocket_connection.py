@@ -48,7 +48,7 @@ import asyncio
 
 async def turn_timer(game_id, current_user: str):
     try:
-        time_left = 31
+        time_left = 31000
 
         while time_left > 0:
 
@@ -137,7 +137,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
 
     if game.is_ended:
         msg = {"type": "GAME_END", "message": "Game already ended"}
-        websocket.send_json(msg)
+        await websocket.send_json(msg)
         return
 
     if game_id not in connections:
@@ -194,6 +194,8 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
     try:
         while True:
             msg = await websocket.receive_json()
+
+            print("Message recieved:", msg , "\n********\n");
 
             # ---------------- JOIN ----------------
             if msg["type"] == "JOIN":
@@ -412,6 +414,8 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
 
         with Session(engine) as session:
             gameUser: GameUser = session.get(GameUser, (username, game_id))
+            if not gameUser:
+                return
             gameUser.is_active = False
             session.add(gameUser)
             session.commit()

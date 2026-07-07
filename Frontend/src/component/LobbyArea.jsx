@@ -3,12 +3,11 @@ import { useUser } from "../context/UserContextProvider";
 import { useGameSocket } from "../context/GameSocketContextProvider";
 import { getGamePlayers } from "../services/game";
 
-const LobbyArea = ({ setLogs, setGame, game, room }) => {
-  const { socket, isConnected } = useGameSocket();
+const LobbyArea = ({ setLogs, room }) => {
+  const { socket, isConnected, sendMessage, game, setGame, lobbyPlayers, setLobbyPlayers } = useGameSocket();
   const currentUser = useUser().username;
-  const [lobbyPlayers, setLobbyPlayers] = useState([]);
+  // const [lobbyPlayers, setLobbyPlayers] = useState([]);
   const [playerWithStatus, setPlayerWithStatus] = useState([]);
-  const [joinedGame, setJoinedGame] = useState(false);
 
   const fetchGamePlayers = async () => {
     try {
@@ -40,108 +39,93 @@ const LobbyArea = ({ setLogs, setGame, game, room }) => {
   }, [room, game]);
 
   const handleJoin = () => {
-    const socketInstance = socket.current;
-
-    if (!socketInstance || !isConnected) {
-      console.log("Socket not ready:", socketInstance?.readyState);
-      return;
-    }
-
-    socketInstance.send(
-      JSON.stringify({
+    sendMessage(
+      {
         type: "JOIN",
         username: currentUser,
-      }),
+      }
     );
   };
 
   const handleStart = () => {
-    const socketInstance = socket.current;
-
-    if (!socketInstance || !isConnected) {
-      console.log("Socket not ready:", socketInstance?.readyState);
-      return;
-    }
-
-    socketInstance.send(
-      JSON.stringify({
-        type: "START",
-        username: currentUser,
-      }),
-    );
+    sendMessage({
+      type: "START",
+      username: currentUser,
+    })
   };
 
-  useEffect(() => {
-    const socketInstance = socket.current;
+  // handled in context
+  // useEffect(() => {
+  //   const socketInstance = socket.current;
 
-    if (!socketInstance) return;
+  //   if (!socketInstance) return;
 
-    const handleIncomingMessage = (event) => {
-      const messagePayload = JSON.parse(event.data);
+  //   const handleIncomingMessage = (event) => {
+  //     const messagePayload = JSON.parse(event.data);
 
-      const newLog = {
-        ...messagePayload,
-        timestamp: Date.now(), // Adds timing anchor
-        id: crypto.randomUUID(), // Safe key for React mapping
-      };
+  //     const newLog = {
+  //       ...messagePayload,
+  //       timestamp: Date.now(), // Adds timing anchor
+  //       id: crypto.randomUUID(), // Safe key for React mapping
+  //     };
 
-      setLogs((prevLogs) => [...prevLogs, newLog]);
+  //     setLogs((prevLogs) => [...prevLogs, newLog]);
 
-      if (messagePayload.type === "JOIN") {
-        if (messagePayload.username === currentUser) {
-          setJoinedGame(true);
-        }
-        setLobbyPlayers((prev) =>
-          prev.map((player) => {
-            if (player.username === messagePayload.username) {
-              return { ...player, is_active: true };
-            }
-            return player;
-          }),
-        );
-      }
+  //     if (messagePayload.type === "JOIN") {
+  //       if (messagePayload.username === currentUser) {
+  //         setJoinedGame(true);
+  //       }
+  //       setLobbyPlayers((prev) =>
+  //         prev.map((player) => {
+  //           if (player.username === messagePayload.username) {
+  //             return { ...player, is_active: true };
+  //           }
+  //           return player;
+  //         }),
+  //       );
+  //     }
 
-      if (messagePayload.type === "WIN") {
-        setGame((prev) => ({
-          ...prev,
-          current_round: game.current_round + 1,
-        }));
-      }
+  //     if (messagePayload.type === "WIN") {
+  //       setGame((prev) => ({
+  //         ...prev,
+  //         current_round: game.current_round + 1,
+  //       }));
+  //     }
 
-      if (messagePayload.type === "GAME_END") {
-        setGame((prev) => ({
-          ...prev,
-          is_ended: true,
-        }));
-      }
+  //     if (messagePayload.type === "GAME_END") {
+  //       setGame((prev) => ({
+  //         ...prev,
+  //         is_ended: true,
+  //       }));
+  //     }
 
-      if (messagePayload.type === "LOST_CONNECTION") {
-        setLobbyPlayers((prev) =>
-          prev.map((player) => {
-            if (player.username === messagePayload.username) {
-              return { ...player, is_active: false };
-            }
-            return player;
-          }),
-        );
-      }
+  //     if (messagePayload.type === "LOST_CONNECTION") {
+  //       setLobbyPlayers((prev) =>
+  //         prev.map((player) => {
+  //           if (player.username === messagePayload.username) {
+  //             return { ...player, is_active: false };
+  //           }
+  //           return player;
+  //         }),
+  //       );
+  //     }
 
-      if (messagePayload.type === "START") {
-        setGame((prev) => ({
-          ...prev,
-          is_started: true,
-          current_player: messagePayload.username,
-        }));
-      }
-      console.log("Inconing lobby: ", game);
-    };
+  //     if (messagePayload.type === "START") {
+  //       setGame((prev) => ({
+  //         ...prev,
+  //         is_started: true,
+  //         current_player: messagePayload.username,
+  //       }));
+  //     }
+  //     console.log("Inconing lobby: ", game);
+  //   };
 
-    socketInstance.addEventListener("message", handleIncomingMessage);
+  //   socketInstance.addEventListener("message", handleIncomingMessage);
 
-    return () => {
-      socketInstance.removeEventListener("message", handleIncomingMessage);
-    };
-  }, []);
+  //   return () => {
+  //     socketInstance.removeEventListener("message", handleIncomingMessage);
+  //   };
+  // }, []);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-900 to-gray-800 text-white p-6 flex flex-col items-center">
@@ -184,7 +168,6 @@ const LobbyArea = ({ setLogs, setGame, game, room }) => {
       <div className="flex gap-4 mt-6">
         <button
           onClick={handleJoin}
-          disabled={socket.current === null || joinedGame}
           className="px-6 py-2 rounded-xl bg-green-600 hover:bg-green-500 active:scale-95 transition-all duration-150 shadow-lg disabled:bg-gray-600 disabled:cursor-not-allowed"
         >
           Join

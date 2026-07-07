@@ -3,68 +3,71 @@ import { useGameSocket } from "../context/GameSocketContextProvider";
 import { useUser } from "../context/UserContextProvider";
 
 const ChatArea = ({ room, setLogs, game, setGame }) => {
-  const [messages, setMessages] = useState([]);
+  const {messages, sendMessage} = useGameSocket();
+  // const [messages, setMessages] = useState([]);
   const [chat, setChat] = useState("");
   const { username } = useUser();
   const { socket, isConnected } = useGameSocket();
 
-  useEffect(() => {
-    const socketInstance = socket.current;
-    if (!socketInstance) return;
 
-    const handleIncomingMessage = (event) => {
-      const data = JSON.parse(event.data);
+  // useEffect(() => {
+  //   const socketInstance = socket.current;
+  //   if (!socketInstance) return;
 
-      const newLog = {
-        ...data,
-        timestamp: Date.now(), // Adds timing anchor
-        id: crypto.randomUUID(), // Safe key for React mapping
-      };
+  //   const handleIncomingMessage = (event) => {
+  //     const data = JSON.parse(event.data);
 
-      setLogs((prevLogs) => [...prevLogs, newLog]);
+  //     const newLog = {
+  //       ...data,
+  //       timestamp: Date.now(), // Adds timing anchor
+  //       id: crypto.randomUUID(), // Safe key for React mapping
+  //     };
 
-      if (
-        data.type === "GUESS" ||
-        data.type === "CHOOSE_WORD" ||
-        data.type === "WIN" ||
-        data.type === "NEXT_ROUND"
-      ) {
-        setMessages((prev) => [...prev, data]);
-        if (data.type === "NEXT_ROUND") {
-          setGame((prev) => ({
-            ...prev,
-            current_player: data.username,
-            current_round: Number(prev.current_round) + 1
-          }));
-        }
-        if (data.type === "WIN") {
-          setGame((prev) => {
-            if (!prev) return prev;
-            return { ...prev, round_ended: Number(prev.round_ended) + 1 };
-          });
-        }
-      }
-      console.log("Incoming chat: ", data);
-    };
+  //     setLogs((prevLogs) => [...prevLogs, newLog]);
 
-    socketInstance.addEventListener("message", handleIncomingMessage);
+  //     if (
+  //       data.type === "GUESS" ||
+  //       data.type === "CHOOSE_WORD" ||
+  //       data.type === "WIN" ||
+  //       data.type === "NEXT_ROUND"
+  //     ) {
+  //       setMessages((prev) => [...prev, data]);
+  //       // if (data.type === "NEXT_ROUND") {
+  //       //   setGame((prev) => ({
+  //       //     ...prev,
+  //       //     current_player: data.username,
+  //       //     current_round: Number(prev.current_round) + 1
+  //       //   }));
+  //       // }
+  //       // if (data.type === "WIN") {
+  //       //   setGame((prev) => {
+  //       //     if (!prev) return prev;
+  //       //     return { ...prev, round_ended: Number(prev.round_ended) + 1 };
+  //       //   });
+  //       // }
+  //     }
+  //     console.log("Incoming chat: ", data);
+  //   };
 
-    return () => {
-      socketInstance.removeEventListener("message", handleIncomingMessage);
-    };
-  }, [socket]);
+  //   socketInstance.addEventListener("message", handleIncomingMessage);
+
+  //   return () => {
+  //     socketInstance.removeEventListener("message", handleIncomingMessage);
+  //   };
+  // }, [socket]);
 
   // Outgoing message
-  const sendMessage = (payload) => {
-    const socketInstance = socket.current;
+  
+  // const sendMessage = (payload) => {
+  //   const socketInstance = socket.current;
 
-    if (!socketInstance || !isConnected) {
-      console.log("Socket not ready:", socketInstance?.readyState);
-      return;
-    }
+  //   if (!socketInstance || !isConnected) {
+  //     console.log("Socket not ready:", socketInstance?.readyState);
+  //     return;
+  //   }
 
-    socketInstance.send(JSON.stringify(payload));
-  };
+  //   socketInstance.send(JSON.stringify(payload));
+  // };
 
   const sendChat = () => {
     if (!chat.trim()) return;

@@ -39,9 +39,11 @@ const Playground = () => {
     fetchRoom();
   }, [gameId, roomId])
 
+  if(!gameId || !game) return;
+
   return (
     <div style={{ color: "white", background: "black" }}>
-      <GameSocketProvider gameId={gameId}>
+      <GameSocketProvider game={game} setGame={setGame}>
         {game && (
           <div className="max-w-md mx-auto my-6 scale-80 -mb-10 overflow-hidden bg-white border border-gray-100 shadow-xl rounded-2xl dark:bg-gray-900 dark:border-gray-800">
             {/* Header Section */}
@@ -139,14 +141,12 @@ const Playground = () => {
             </div>
           </div>
         )}
-        <GameLogs logs={logs} />
+        <GameLogs />
         {game && game?.is_ended && <div>Already ended</div>}
         <Canvas game={game} />
         {game && !game?.is_ended && !game?.is_started && room && (
           <LobbyArea
             setLogs={setLogs}
-            setGame={setGame}
-            game={game}
             room={room}
           />
         )}
@@ -154,8 +154,6 @@ const Playground = () => {
           <ChatArea
             room={room}
             setLogs={setLogs}
-            game={game}
-            setGame={setGame}
           />
         )}
       </GameSocketProvider>

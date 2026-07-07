@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useGameSocket } from '../context/GameSocketContextProvider';
 
 // Example types for your logs — add more as your WebSocket expands
 const TYPE_STYLES = {
@@ -9,8 +10,9 @@ const TYPE_STYLES = {
   DEFAULT: 'bg-zinc-800 text-zinc-300 border-zinc-700'
 };
 
-export default function GameLogs({ logs = [] }) {
+export default function GameLogs() {
   const containerRef = useRef(null);
+  const {logs} = useGameSocket();
 
   // Auto-scrolls to the bottom of the log window whenever a new event arrives
   useEffect(() => {
