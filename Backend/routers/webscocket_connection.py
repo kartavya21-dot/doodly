@@ -3,7 +3,7 @@ from typing import List, Dict, TypedDict
 from db.session import Session, engine
 from db.models import Game, Room, User, GameUser
 from services.auth_services import decode_token
-from sqlmodel import select
+from sqlmodel import select, delete
 
 """
     {
@@ -143,51 +143,33 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
         connections[game_id] = []
         players_queue[game_id] = []
 
+    await websocket.accept()
+
+    connections[game_id].append(websocket)
+
     # So this is the case where game is already started, but for some reason every member was inactive
     if game.is_started:
         with Session(engine) as session:
-            game_users: GameUser = session.exec(
-                select(GameUser)
-                .where(GameUser.game_id == game_id)
-                .order_by(GameUser.turn)
-            ).all()
+            game_user: GameUser = session.get(GameUser, (game_id, username))
 
-            if not game_users:
+            # Now this check is for that 0.1% case, where user was not deleted( before game started, user left the game, so gameUser is deleted)
+            if not game_user:
                 msg = {
-                    "type": "ERROR",
-                    "message": "Game started, cant join now",
-                    "sub-type": "YOU_LATE",
+                    "type": "YOU_LATE",
+                    "message": "Game started, cant join now"
                 }
 
                 await websocket.send_json(msg)
                 return
 
-            if len(players_queue[game_id]) == 0:
-                players_queue[game_id] = [
-                    {"username": user.user_username, "is_active": user.is_active}
-                    for user in game_users
-                ]
+            game_user.is_active = True 
 
-            # There is no need, cause I have done this in previous cases
-            if not players_queue[game_id] or len(players_queue[game_id]) == 0:
-                game.is_ended = True
-                session.add(game)
-                session.commit()
-                session.refresh(game)
+            for player in players_queue[game_id]:
+                if player["username"] == username:
+                    player["is_active"] = True
 
-                msg = {"type": "GAME_END", "message": "Game already ended"}
-
-                await broadcast_message(
-                    connections[game_id], websocket, msg, to_user=False
-                )
-
-                connections.pop(game_id)
-
-                return
-
-    await websocket.accept()
-
-    connections[game_id].append(websocket)
+            session.commit()
+            session.refres(game_user)
 
     try:
         while True:
@@ -196,12 +178,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
             if msg["type"] == "JOIN":
                 with Session(engine) as session:
                     game: Game = session.get(Game, game_id)
-                    playersCount: int = len(game.players)
-                    gameUser: GameUser = session.exec(
-                        select(GameUser)
-                        .where(GameUser.user_username == username)
-                        .where(GameUser.game_id == game_id)
-                    ).first()
+                    gameUser: GameUser = session.get(GameUser, (username, game_id))
 
                     if gameUser:
                         gameUser.is_active = True
@@ -209,7 +186,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                         gameUser: GameUser = GameUser(
                             user_username=username,
                             game_id=game_id,
-                            turn=playersCount,
+                            turn=0,
                             is_active=True,
                         )
                         session.add(gameUser)
@@ -226,6 +203,53 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                 await broadcast_message(
                     connections[game_id], websocket, new_msg, to_user=True
                 )
+
+            # ---------------- START ----------------
+            elif msg["type"] == "START":
+
+                # Populating the queue from db
+                with Session(engine) as session:
+                    game_users = session.exec(
+                        select(GameUser).where(GameUser.game_id == game_id).order_by(GameUser.turn)
+                    ).all()
+
+                    for i, user in enumerate(game_users):
+                        user.turn = i
+                        players_queue[game_id].append(
+                            {
+                                "username": user.user_username,
+                                "is_active": user.is_active,
+                            }
+                        )
+
+                    print("Populated queue, in START: ", players_queue[game_id])
+
+                    current_player_username = None
+
+                    game = session.get(Game, game_id)
+
+                    player_count = len(game.players)
+                    index = game.current_round % player_count
+                    current_player_username = players_queue[game_id][index]["username"]
+
+                    game.current_player = current_player_username
+                    game.is_started = True
+                    session.commit()
+                    session.refresh(game)
+
+                    new_msg = {
+                        "message": f"Game Begins, {current_player_username} is choosing word",
+                        "username": current_player_username,
+                        "type": "START",
+                    }
+
+                    await broadcast_message(
+                        connections[game_id], websocket, new_msg, to_user=True
+                    )
+
+                    turn_timers[game_id] = asyncio.create_task(
+                        turn_timer(game_id, current_player_username)
+                    )
 
             # ---------------- GUESS ----------------
             elif msg["type"] == "GUESS":
@@ -316,53 +340,6 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                             turn_timer(game_id, game.current_player)
                         )
 
-            # ---------------- START ----------------
-            elif msg["type"] == "START":
-
-                # Populating the queue from db
-                with Session(engine) as session:
-                    game_users = session.exec(
-                        select(GameUser).where(GameUser.game_id == game_id).order_by(GameUser.turn)
-                    ).all()
-
-                    for i, user in enumerate(game_users):
-                        players_queue[game_id].append(
-                            {
-                                "username": user.user_username,
-                                "is_active": user.is_active,
-                            }
-                        )
-
-                print("Populated queue, in START: ", players_queue[game_id])
-
-                current_player_username = None
-
-                with Session(engine) as session:
-                    game = session.get(Game, game_id)
-
-                    player_count = len(game.players)
-                    index = game.current_round % player_count
-                    current_player_username = players_queue[game_id][index]["username"]
-
-                    game.current_player = current_player_username
-                    game.is_started = True
-                    session.commit()
-                    session.refresh(game)
-
-                    new_msg = {
-                        "message": f"Game Begins, {current_player_username} is choosing word",
-                        "username": current_player_username,
-                        "type": "START",
-                    }
-
-                    await broadcast_message(
-                        connections[game_id], websocket, new_msg, to_user=True
-                    )
-
-                    turn_timers[game_id] = asyncio.create_task(
-                        turn_timer(game_id, current_player_username)
-                    )
-
             # ---------------- CHOOSE-WORD ----------------
             elif msg["type"] == "CHOOSE_WORD":
 
@@ -395,45 +372,59 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
 
     except WebSocketDisconnect:
         game_is_started = False
+        msg = {}
 
         with Session(engine) as session:
             gameUser: GameUser = session.get(GameUser, (username, game_id))
             game: Game = session.get(Game, game_id)
             game_is_started = game.is_started
-            gameUser.is_active = False
-            session.add(gameUser)
+
+            if game_is_started:
+                session.delete(gameUser)
+            else:
+                gameUser.is_active = False
+                session.add(gameUser)
+
             session.commit()
             session.refresh(gameUser)
 
-        msg = {
-            "message": f"{username} lost connection.",
-            "username": username,
-            "type": "LOST_CONNECTION",
-        }
-
+        if game_is_started:
+            msg = {
+                "message": f"{username} lost connection.",
+                "username": username,
+                "type": "LOST_CONNECTION",
+            }
+        else:
+            msg = {
+                "message": f"{username} left game.",
+                "username": username,
+                "type": "LEFT_GAME",
+            }
+    
         await broadcast_message(connections[game_id], websocket, msg, to_user=False)
 
-        for player in players_queue[game_id]:
-            if player["username"] == username:
-                player["is_active"] = False
-                break
+        if game_is_started:
+            for player in players_queue[game_id]:
+                if player["username"] == username:
+                    player["is_active"] = False
+                    break
 
-        connections[game_id].remove(websocket)
+            connections[game_id].remove(websocket)
 
-        # In case where all the user left the game, midway therefore delete it
-        if len(connections[game_id]) == 0 and game_is_started:
+            # In case where all the user left the game, midway(after game is started) therefore delete it
+            if len(connections[game_id]) == 0:
 
-            with Session(engine) as session:
-                game: Game = session.get(Game, game_id)
-                game.is_ended = True
-                session.add(game)
-                session.commit()
-                session.refresh(game)
+                with Session(engine) as session:
+                    game: Game = session.get(Game, game_id)
+                    game.is_ended = True
+                    session.add(game)
+                    session.commit()
+                    session.refresh(game)
 
-            if game_id in turn_timers:
-                turn_timers[game_id].cancel()
-                del turn_timers[game_id]
-            if game_id in connections:
-                del connections[game_id]
-            if game_id in players_queue:
-                del players_queue[game_id]
+                if game_id in turn_timers:
+                    turn_timers[game_id].cancel()
+                    del turn_timers[game_id]
+                if game_id in connections:
+                    del connections[game_id]
+                if game_id in players_queue:
+                    del players_queue[game_id]
