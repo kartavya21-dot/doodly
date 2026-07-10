@@ -1,4 +1,11 @@
-import { createContext, useContext, useRef, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useRef,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { useUser } from "./UserContextProvider";
 
 const GameSocketContext = createContext(null);
@@ -9,8 +16,6 @@ export function GameSocketProvider({ game, setGame, children }) {
   const socketRef = useRef(null);
   const currentUser = useUser().username;
   const [isConnected, setIsConnected] = useState(false);
-
-  // const [game, setGame] = useState(null);
 
   const [timeLeft, setTimeLeft] = useState(0);
 
@@ -23,6 +28,41 @@ export function GameSocketProvider({ game, setGame, children }) {
   const [lobbyPlayers, setLobbyPlayers] = useState([]);
 
   const [logs, setLogs] = useState([]);
+
+  const canvasRef = useRef(null);
+
+  const [drawHistory, setDrawHistory] = useState([]);
+
+  const registerCanvas = useCallback(
+    (canvas) => {
+      canvasRef.current = canvas?.current ?? null;
+      if (canvasRef.current) {
+        // When a new canvas is registered, replay the history
+        const ctx = canvasRef.current.getContext("2d");
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        drawHistory.forEach((data) => {
+          drawSegment(data);
+        });
+      }
+    },
+    [drawHistory],
+  ); // Re-create if history changes, though this is for initial draw
+
+  function drawSegment(data) {
+    if (!canvasRef.current) return;
+
+    const ctx = canvasRef.current.getContext("2d");
+    if (!ctx) return;
+
+    ctx.strokeStyle = data.color;
+    ctx.lineWidth = data.lineWidth;
+    ctx.lineCap = "round";
+
+    ctx.beginPath();
+    ctx.moveTo(data.x0, data.y0);
+    ctx.lineTo(data.x1, data.y1);
+    ctx.stroke();
+  }
 
   const sendMessage = (data) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
@@ -72,6 +112,12 @@ export function GameSocketProvider({ game, setGame, children }) {
         break;
       }
 
+      case "DRAW": {
+        drawSegment(data);
+        setDrawHistory((prev) => [...prev, data]);
+        break;
+      }
+
       case "GUESS": {
         setMessages((prev) => [...prev, data]);
         break;
@@ -80,6 +126,7 @@ export function GameSocketProvider({ game, setGame, children }) {
       case "WIN": {
         setSelectedWord(null);
         setIsSent(false);
+        setDrawHistory([]); // Clear history on win
         setMessages((prev) => [...prev, data]);
         setGame((prev) => ({
           ...prev,
@@ -91,6 +138,7 @@ export function GameSocketProvider({ game, setGame, children }) {
       case "NEXT_ROUND": {
         setSelectedWord(null);
         setIsSent(false);
+        setDrawHistory([]); // Clear history for next round
         setMessages((prev) => [...prev, data]);
         setGame((prev) => ({
           ...prev,
@@ -103,6 +151,7 @@ export function GameSocketProvider({ game, setGame, children }) {
       case "GAME_END": {
         setSelectedWord(null);
         setIsSent(false);
+        setDrawHistory([]); // Clear history on game end
         setGame((prev) => ({
           ...prev,
           is_ended: true,
@@ -165,6 +214,9 @@ export function GameSocketProvider({ game, setGame, children }) {
         lobbyPlayers,
         setLobbyPlayers,
         logs,
+
+        registerCanvas,
+        drawSegment,
 
         sendMessage,
       }}

@@ -263,6 +263,35 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                         turn_timer(game_id, current_player_username)
                     )
 
+            # ---------------- CHOOSE-WORD ----------------
+            elif msg["type"] == "CHOOSE_WORD":
+
+                if game_id in turn_timers:
+                    turn_timers[game_id].cancel()
+                    del turn_timers[game_id]
+
+                with Session(engine) as session:
+                    game = session.get(Game, game_id)
+                    game.current_word = msg["current_word"]
+                    session.commit()
+                    session.refresh(game)
+
+                    new_msg = {
+                        "message": f"{game.current_player} chose a word",
+                        "username": game.current_player,
+                        "current_word": msg["current_word"],
+                        "type": "CHOOSE_WORD",
+                    }
+
+                    await broadcast_message(
+                        connections[game_id], websocket, new_msg, to_user=True
+                    )
+
+            elif msg["type"] == "DRAW":
+                await broadcast_message(
+                    connections[game_id], websocket, msg, to_user=False
+                )
+
             # ---------------- GUESS ----------------
             elif msg["type"] == "GUESS":
                 with Session(engine) as session:
@@ -353,30 +382,6 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                         turn_timers[game_id] = asyncio.create_task(
                             turn_timer(game_id, game.current_player)
                         )
-
-            # ---------------- CHOOSE-WORD ----------------
-            elif msg["type"] == "CHOOSE_WORD":
-
-                if game_id in turn_timers:
-                    turn_timers[game_id].cancel()
-                    del turn_timers[game_id]
-
-                with Session(engine) as session:
-                    game = session.get(Game, game_id)
-                    game.current_word = msg["current_word"]
-                    session.commit()
-                    session.refresh(game)
-
-                    new_msg = {
-                        "message": f"{game.current_player} chose a word",
-                        "username": game.current_player,
-                        "current_word": msg["current_word"],
-                        "type": "CHOOSE_WORD",
-                    }
-
-                    await broadcast_message(
-                        connections[game_id], websocket, new_msg, to_user=True
-                    )
 
             # ---------------- DEFAULT ----------------
             else:

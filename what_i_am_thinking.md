@@ -13,3 +13,7 @@
   2. not game.is_started: nothing, just allow that to join from lobby
 
 * Once the game is started, then we will add index to player_turn in both db and in player's queue | Reason: Because that what stopping us from modifying user once the game is started.
+
+### 10 July
+* Implemented, **User can now join the game after it starts, if user had joined before it was started**
+* Idea: To store contextRef in websocket context, and a register function in canvas to register the canvasRef. Then send data from websocket context to canvas

@@ -1,0 +1,89 @@
+import { useEffect, useRef } from "react";
+import { useGameSocket } from "../context/GameSocketContextProvider";
+import { useUser } from "../context/UserContextProvider";
+
+export default function Board() {
+  const canvasRef = useRef(null);
+  const { registerCanvas, sendMessage, drawSegment } = useGameSocket();
+  const { username } = useUser();
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const parent = canvas.parentElement;
+
+    canvas.width = parent.clientWidth;
+    canvas.height = parent.clientHeight;
+
+    registerCanvas(canvasRef);
+
+    return () => registerCanvas(null);
+  }, [registerCanvas]);
+
+  const isDrawing = useRef(false);
+  const prevPoint = useRef(null);
+
+  const getCoords = (e) => {
+    const rect = canvasRef.current.getBoundingClientRect();
+
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    };
+  };
+
+  const handleMouseDown = (e) => {
+    isDrawing.current = true;
+    prevPoint.current = getCoords(e);
+  };
+
+  const lastFrame = useRef(0);
+
+  const handleMouseMove = (e) => {
+    if (!isDrawing.current) return;
+
+    const now = performance.now();
+
+    // 60 FPS
+    if (now - lastFrame.current < 16) return;
+    lastFrame.current = now;
+
+    const curr = getCoords(e);
+
+    const drawData = {
+      type: "DRAW",
+      x0: prevPoint.current.x,
+      y0: prevPoint.current.y,
+      x1: curr.x,
+      y1: curr.y,
+      color: "#000",
+      lineWidth: 4,
+      username: username,
+    };
+
+    // Draw locally first
+    drawSegment(drawData);
+    sendMessage(drawData);
+
+    prevPoint.current = curr;
+  };
+
+  const handleMouseUp = () => {
+    isDrawing.current = false;
+    prevPoint.current = null;
+  };
+
+  return (
+    <canvas
+      ref={canvasRef}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "block",
+      }}
+    />
+  );
+}

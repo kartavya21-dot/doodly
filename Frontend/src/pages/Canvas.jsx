@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useUser } from "../context/UserContextProvider";
 import { useGameSocket } from "../context/GameSocketContextProvider";
+import Board from "../Canvas/Board";
 
 const Canvas = ({ game }) => {
   const { username } = useUser();
@@ -90,7 +91,7 @@ const Canvas = ({ game }) => {
 
         {/* Canvas */}
         <div className="w-full h-[350px] rounded-2xl bg-gradient-to-br from-gray-100 to-gray-300 flex items-center justify-center shadow-inner">
-          <div className="text-center">
+          {/* <div className="text-center">
             <p className="text-5xl mb-3">✏️</p>
 
             <p className="text-gray-600 text-lg font-medium">
@@ -98,7 +99,8 @@ const Canvas = ({ game }) => {
                 ? "Game not started"
                 : `Drawing: ${game?.current_player}`}
             </p>
-          </div>
+          </div> */}
+          <Board/>
         </div>
 
         {/* Word selection */}
