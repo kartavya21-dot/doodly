@@ -44,7 +44,7 @@ export default function Board() {
     const now = performance.now();
 
     // 60 FPS
-    if (now - lastFrame.current < 16) return;
+    if (now - lastFrame.current < 30) return;
     lastFrame.current = now;
 
     const curr = getCoords(e);
@@ -65,6 +65,7 @@ export default function Board() {
     sendMessage(drawData);
 
     prevPoint.current = curr;
+    
   };
 
   const handleMouseUp = () => {

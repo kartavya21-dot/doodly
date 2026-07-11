@@ -31,8 +31,6 @@ export function GameSocketProvider({ game, setGame, children }) {
 
   const canvasRef = useRef(null);
 
-  const [drawHistory, setDrawHistory] = useState([]);
-
   const registerCanvas = useCallback(
     (canvas) => {
       canvasRef.current = canvas?.current ?? null;
@@ -40,12 +38,9 @@ export function GameSocketProvider({ game, setGame, children }) {
         // When a new canvas is registered, replay the history
         const ctx = canvasRef.current.getContext("2d");
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-        drawHistory.forEach((data) => {
-          drawSegment(data);
-        });
       }
     },
-    [drawHistory],
+    [],
   ); // Re-create if history changes, though this is for initial draw
 
   function drawSegment(data) {
@@ -114,7 +109,6 @@ export function GameSocketProvider({ game, setGame, children }) {
 
       case "DRAW": {
         drawSegment(data);
-        setDrawHistory((prev) => [...prev, data]);
         break;
       }
 

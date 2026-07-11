@@ -363,8 +363,6 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                             "username"
                         ]
 
-                        print("Current User: ", current_player_username)
-
                         game.current_player = current_player_username
                         session.commit()
                         session.refresh(game)
@@ -398,23 +396,16 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
             game: Game = session.get(Game, game_id)
             game_is_started = game.is_started
 
-            print("Users: ")
-            for user in gameUser:
-                print(user, end=" ")
-            print()
-
             if game_is_started:
-                print("Updating User")
                 gameUser.is_active = False
                 session.add(gameUser)
             else:
-                print("Deleting user")
-                session.delete(gameUser)
+                if gameUser:
+                    session.delete(gameUser)
 
             session.commit()
             session.refresh(gameUser)
 
-        print(f"{username} left: ", game_is_started)
         if game_is_started:
             msg = {
                 "message": f"{username} lost connection.",
