@@ -3,7 +3,7 @@ import { useUser } from "../context/UserContextProvider";
 import { useGameSocket } from "../context/GameSocketContextProvider";
 import Board from "../Canvas/Board";
 
-const Canvas = ({ game }) => {
+const Canvas = () => {
   const { username } = useUser();
   const { socket, game, selectedWord, setSelectedWord, isSent, timeLeft, sendMessage, userPlaying } = useGameSocket();
   const [words, setWords] = useState([
@@ -41,7 +41,7 @@ const Canvas = ({ game }) => {
           </div>
 
           {/* Timer */}
-          {game?.current_player === username && <div
+          {userPlaying && <div
             className={`
               min-w-[90px]
               h-20
@@ -68,7 +68,7 @@ const Canvas = ({ game }) => {
         </div>
 
         {/* Word selection */}
-        {game?.current_player === username && (
+        {userPlaying && (
           <div className="mt-6">
             <p className="text-white mb-3 font-semibold">Choose a word</p>
 

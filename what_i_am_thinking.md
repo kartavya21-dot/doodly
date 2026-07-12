@@ -20,4 +20,5 @@
 * Idea: To store contextRef in websocket context, and a register function in canvas to register the canvasRef. Then send data from websocket context to canvas
 
 ### 12 July
-* 
+* Now when game is won, we dont send the next_player name. we game.current_player as null in frontend. So the user cant draw after the game ends
+* Also hide the Board while choosing word

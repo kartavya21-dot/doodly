@@ -316,7 +316,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                             new_msg = {
                                 "message": f"{msg['username']} guessed the word",
                                 "username": msg["username"],
-                                "next_player": current_player_username,
+                                # "next_player": current_player_username,
                                 "type": "WIN",
                             }
                             if game.current_round == game.total_round:
@@ -345,7 +345,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                 with Session(engine) as session:
                     game = session.get(Game, game_id)
                     game.current_round += 1
-                    if game.current_round == game.total_round:
+                    if game.current_round >= game.total_round:
                         game.is_ended = True
                         session.commit()
                         session.refresh(game)

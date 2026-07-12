@@ -4,7 +4,7 @@ import { useUser } from "../context/UserContextProvider";
 
 export default function Board() {
   const canvasRef = useRef(null);
-  const { registerCanvas, sendMessage, drawSegment } = useGameSocket();
+  const { registerCanvas, sendMessage, drawSegment, userPlaying } = useGameSocket();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -74,10 +74,10 @@ export default function Board() {
   return (
     <canvas
       ref={canvasRef}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      onMouseDown={userPlaying ? handleMouseDown : () => {}}
+      onMouseMove={userPlaying ? handleMouseMove : () => {}}
+      onMouseUp={userPlaying ? handleMouseUp : () => {}}
+      onMouseLeave={userPlaying ? handleMouseUp : () => {}}
       style={{
         width: "100%",
         height: "100%",

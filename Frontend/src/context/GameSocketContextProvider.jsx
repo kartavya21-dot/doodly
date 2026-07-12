@@ -126,6 +126,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         setGame((prev) => ({
           ...prev,
           current_round: game.current_round + 1,
+          current_player: null
         }));
         break;
       }
