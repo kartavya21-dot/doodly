@@ -5,7 +5,6 @@ import { useUser } from "../context/UserContextProvider";
 export default function Board() {
   const canvasRef = useRef(null);
   const { registerCanvas, sendMessage, drawSegment } = useGameSocket();
-  const { username } = useUser();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -57,7 +56,6 @@ export default function Board() {
       y1: curr.y,
       color: "#000",
       lineWidth: 4,
-      username: username,
     };
 
     // Draw locally first

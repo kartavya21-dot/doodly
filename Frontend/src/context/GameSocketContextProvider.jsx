@@ -29,6 +29,8 @@ export function GameSocketProvider({ game, setGame, children }) {
 
   const [logs, setLogs] = useState([]);
 
+  const [userPlaying, setUserPlaying] = useState(false);
+
   const canvasRef = useRef(null);
 
   const registerCanvas = useCallback(
@@ -43,7 +45,7 @@ export function GameSocketProvider({ game, setGame, children }) {
     [],
   ); // Re-create if history changes, though this is for initial draw
 
-  function drawSegment(data) {
+  const drawSegment = (data) => {
     if (!canvasRef.current) return;
 
     const ctx = canvasRef.current.getContext("2d");
@@ -189,12 +191,24 @@ export function GameSocketProvider({ game, setGame, children }) {
     };
   }, [game.id]);
 
+  useEffect(() => {
+    if(!game) return;
+
+    if(game.current_player === currentUser) {
+      setUserPlaying(true);
+    } else {
+      setUserPlaying(false);
+    }
+
+  }, [game.current_player])
+
   return (
     <GameSocketContext.Provider
       value={{
         socket: socketRef,
         isConnected,
         game,
+        userPlaying,
 
         timeLeft,
         selectedWord,

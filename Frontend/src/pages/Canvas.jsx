@@ -5,7 +5,7 @@ import Board from "../Canvas/Board";
 
 const Canvas = ({ game }) => {
   const { username } = useUser();
-  const { socket, isConnected, selectedWord, setSelectedWord, isSent, setIsSent, timeLeft, setTimeLeft, sendMessage } = useGameSocket();
+  const { socket, game, selectedWord, setSelectedWord, isSent, timeLeft, sendMessage, userPlaying } = useGameSocket();
   const [words, setWords] = useState([
     "apple",
     "banana",
@@ -15,33 +15,6 @@ const Canvas = ({ game }) => {
     "fig",
     "grape",
   ]);
-
-  // useEffect(() => {
-  //   const socketInstance = socket.current;
-  //   if (!socketInstance) return;
-
-  //   const handleIncomingMessage = (event) => {
-  //     const messagePayload = JSON.parse(event.data);
-
-  //     if (messagePayload.type === "TIMER") {
-  //       console.log("Timer received:", messagePayload.timeLeft);
-
-  //       setTimeLeft(messagePayload.timeLeft);
-  //     }
-  //     if(messagePayload.type === "WIN" || messagePayload.type === "GAME_END" || messagePayload.type === "NEXT_ROUND") {
-  //       setSelectedWord(null);
-  //       setIsSent(false);
-  //     }
-
-  //     console.log("Incoming canvas:", messagePayload);
-  //   };
-
-  //   socketInstance.addEventListener("message", handleIncomingMessage);
-
-  //   return () => {
-  //     socketInstance.removeEventListener("message", handleIncomingMessage);
-  //   };
-  // }, [socket.current]);
 
   const sendSelectedWord = () => {
     const payload = {
@@ -91,15 +64,6 @@ const Canvas = ({ game }) => {
 
         {/* Canvas */}
         <div className="w-full h-[350px] rounded-2xl bg-gradient-to-br from-gray-100 to-gray-300 flex items-center justify-center shadow-inner">
-          {/* <div className="text-center">
-            <p className="text-5xl mb-3">✏️</p>
-
-            <p className="text-gray-600 text-lg font-medium">
-              {!game?.is_started
-                ? "Game not started"
-                : `Drawing: ${game?.current_player}`}
-            </p>
-          </div> */}
           <Board/>
         </div>
 
