@@ -120,7 +120,6 @@ export function GameSocketProvider({ game, setGame, children }) {
       case "WIN": {
         setSelectedWord(null);
         setIsSent(false);
-        setDrawHistory([]); // Clear history on win
         setMessages((prev) => [...prev, data]);
         setGame((prev) => ({
           ...prev,
@@ -132,7 +131,6 @@ export function GameSocketProvider({ game, setGame, children }) {
       case "NEXT_ROUND": {
         setSelectedWord(null);
         setIsSent(false);
-        setDrawHistory([]); // Clear history for next round
         setMessages((prev) => [...prev, data]);
         setGame((prev) => ({
           ...prev,
@@ -145,7 +143,6 @@ export function GameSocketProvider({ game, setGame, children }) {
       case "GAME_END": {
         setSelectedWord(null);
         setIsSent(false);
-        setDrawHistory([]); // Clear history on game end
         setGame((prev) => ({
           ...prev,
           is_ended: true,
