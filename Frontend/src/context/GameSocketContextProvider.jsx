@@ -147,6 +147,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         setIsSent(false);
         setGame((prev) => ({
           ...prev,
+          current_player: null,
           is_ended: true,
         }));
         break;

@@ -23,7 +23,7 @@ class PlayerInQueue(TypedDict):
 
 connections: Dict[int, List[WebSocket]] = {}
 players_queue: Dict[int, List[PlayerInQueue]] = {}
-turn_timers = {}
+game_timers = {}
 
 
 async def broadcast_message(
@@ -46,20 +46,21 @@ async def broadcast_message(
 
 
 import asyncio
+import time
 
 
 async def turn_timer(game_id, current_user: str, choose_word: bool):
     try:
-        time_left = 30 if choose_word else 20
+        while True:
+            remaining = max(0, int(game_timers[game_id]["end_time"] - time.monotonic()))
 
-        while time_left > 0:
-
-            timer_msg = {"type": "TIMER", "timeLeft": time_left - 1}
+            timer_msg = {"type": "TIMER", "timeLeft": remaining}
 
             await broadcast_message(connections[game_id], None, timer_msg, to_user=True)
+            if remaining == 0:
+                break
 
             await asyncio.sleep(1)
-            time_left -= 1
 
         user: PlayerInQueue = next(
             (
@@ -71,7 +72,7 @@ async def turn_timer(game_id, current_user: str, choose_word: bool):
         )
 
         if choose_word:
-        # if user is there, but not active then switch round
+            # if user is there, but not active then switch round
             if user and not user["is_active"]:
                 msg = None
 
@@ -271,17 +272,26 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                     await broadcast_message(
                         connections[game_id], websocket, new_msg, to_user=True
                     )
+                        
+                    task = asyncio.create_task(turn_timer(game_id, current_player_username, True))
 
-                    turn_timers[game_id] = asyncio.create_task(
-                        turn_timer(game_id, current_player_username, True)
-                    )
+                    game_timers[game_id] = {
+                        "task": task,
+                        "end_time": time.monotonic() + 30
+                    }
 
             # ---------------- CHOOSE-WORD ----------------
             elif msg["type"] == "CHOOSE_WORD":
 
-                if game_id in turn_timers:
-                    turn_timers[game_id].cancel()
-                    del turn_timers[game_id]
+                if game_id in game_timers:
+                    game_timers[game_id]["task"].cancel()
+
+                    try:
+                        await game_timers[game_id]["task"]
+                    except asyncio.CancelledError:
+                        pass
+
+                    del game_timers[game_id]
 
                 with Session(engine) as session:
                     game = session.get(Game, game_id)
@@ -300,9 +310,12 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                         connections[game_id], websocket, new_msg, to_user=True
                     )
 
-                    turn_timers[game_id] = asyncio.create_task(
-                        turn_timer(game_id, game.current_player, False)
-                    )
+                    task = asyncio.create_task(turn_timer(game_id, current_player_username, True))
+
+                    game_timers[game_id] = {
+                        "task": task,
+                        "end_time": time.monotonic() + 20
+                    }
 
             # ---------------- DRAW ----------------
             elif msg["type"] == "DRAW":
@@ -325,9 +338,15 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                         # --------------- WIN ----------------
                         if game.current_word == msg["message"]:
                             
-                            if game_id in turn_timers:
-                                turn_timers[game_id].cancel()
-                                del turn_timers[game_id]
+                            if game_id in game_timers:
+                                game_timers[game_id]["task"].cancel()
+
+                                try:
+                                    await game_timers[game_id]["task"]
+                                except asyncio.CancelledError:
+                                    pass
+
+                                del game_timers[game_id]
                             
                             game.round_ended += 1
                             player_count = len(game.players)
@@ -400,9 +419,12 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                             connections[game_id], websocket, new_msg, to_user=True
                         )
 
-                        turn_timers[game_id] = asyncio.create_task(
-                            turn_timer(game_id, game.current_player, True)
-                        )
+                        task = asyncio.create_task(turn_timer(game_id, current_player_username, True))
+
+                        game_timers[game_id] = {
+                            "task": task,
+                            "end_time": time.monotonic() + 30
+                        }
 
             # ---------------- DEFAULT ----------------
             else:
@@ -462,9 +484,9 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                     session.commit()
                     session.refresh(game)
 
-                if game_id in turn_timers:
-                    turn_timers[game_id].cancel()
-                    del turn_timers[game_id]
+                if game_id in game_timers:
+                    game_timers[game_id]["task"].cancel()
+                    del game_timers[game_id]
                 if game_id in connections:
                     del connections[game_id]
                 if game_id in players_queue:
