@@ -25,4 +25,5 @@
 
 ### 13 July
 * Changed *WIN* -> *ROUND_END*, to make it more obvious.
-* Timer added when users are guessing the drawing
+* Timer added when users are guessing the drawing.
+* Changed game_timer to know, remaining time.
