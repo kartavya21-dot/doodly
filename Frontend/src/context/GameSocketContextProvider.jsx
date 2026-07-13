@@ -119,13 +119,12 @@ export function GameSocketProvider({ game, setGame, children }) {
         break;
       }
 
-      case "WIN": {
+      case "ROUND_END": {
         setSelectedWord(null);
         setIsSent(false);
         setMessages((prev) => [...prev, data]);
         setGame((prev) => ({
           ...prev,
-          current_round: game.current_round + 1,
           current_player: null
         }));
         break;
