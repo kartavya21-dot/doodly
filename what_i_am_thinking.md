@@ -27,3 +27,7 @@
 * Changed *WIN* -> *ROUND_END*, to make it more obvious.
 * Timer added when users are guessing the drawing.
 * Changed game_timer to know, remaining time.
+
+### 14 July
+* Scoring based on time left
+* But the issue starts, when user guess the game stops

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, WebSocketException
 from typing import List, Dict, TypedDict
 from db.session import Session, engine
-from db.models import Game, Room, User, GameUser
+from db.models import Game, Room, User, GameUser, UserGameScore
 from services.auth_services import decode_token
 from sqlmodel import select, delete
 
@@ -24,6 +24,9 @@ class PlayerInQueue(TypedDict):
 connections: Dict[int, List[WebSocket]] = {}
 players_queue: Dict[int, List[PlayerInQueue]] = {}
 game_timers = {}
+
+# Declaring this as global, then change it to according to user need of game duration
+game_duration = 30
 
 
 async def broadcast_message(
@@ -88,7 +91,9 @@ async def turn_timer(game_id, current_user: str, choose_word: bool):
                     else:
                         player_count = len(game.players)
                         index = game.current_round % player_count
-                        current_player_username = players_queue[game_id][index]["username"]
+                        current_player_username = players_queue[game_id][index][
+                            "username"
+                        ]
                         game.current_player = current_player_username
 
                         msg = {
@@ -117,19 +122,20 @@ async def turn_timer(game_id, current_user: str, choose_word: bool):
                         "type": "CHOOSE_WORD",
                     }
 
-                    await broadcast_message(connections[game_id], None, msg, to_user=True)
+                    await broadcast_message(
+                        connections[game_id], None, msg, to_user=True
+                    )
         else:
             with Session(engine) as session:
                 game: Game = session.get(Game, game_id)
-            
+
                 msg = {
                     "type": "ROUND_END",
                     "message": "No one can guessed the word",
-                    "current_word": game.current_word
+                    "current_word": game.current_word,
                 }
 
                 await broadcast_message(connections[game_id], None, msg, to_user=True)
-
 
     except asyncio.CancelledError:
         print("Timer Cancelled")
@@ -203,6 +209,9 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                 with Session(engine) as session:
                     game: Game = session.get(Game, game_id)
                     game_user: GameUser = session.get(GameUser, (username, game_id))
+                    game.scores.append(
+                        UserGameScore(user_username=username, game_id=game_id)
+                    )
 
                     if game_user:
                         game_user.is_active = True
@@ -272,12 +281,14 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                     await broadcast_message(
                         connections[game_id], websocket, new_msg, to_user=True
                     )
-                        
-                    task = asyncio.create_task(turn_timer(game_id, current_player_username, True))
+
+                    task = asyncio.create_task(
+                        turn_timer(game_id, current_player_username, True)
+                    )
 
                     game_timers[game_id] = {
                         "task": task,
-                        "end_time": time.monotonic() + 30
+                        "end_time": time.monotonic() + 30,
                     }
 
             # ---------------- CHOOSE-WORD ----------------
@@ -310,11 +321,13 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                         connections[game_id], websocket, new_msg, to_user=True
                     )
 
-                    task = asyncio.create_task(turn_timer(game_id, current_player_username, True))
+                    task = asyncio.create_task(
+                        turn_timer(game_id, current_player_username, True)
+                    )
 
                     game_timers[game_id] = {
                         "task": task,
-                        "end_time": time.monotonic() + 20
+                        "end_time": time.monotonic() + 20,
                     }
 
             # ---------------- DRAW ----------------
@@ -337,7 +350,24 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                     else:
                         # --------------- WIN ----------------
                         if game.current_word == msg["message"]:
-                            
+
+                            drawing_player: GameUser = game.current_player
+                            guessing_player: str = username
+
+                            remaining_time = (
+                                game_timers[game_id]["end_time"] - time.monotonic()
+                            )
+                            score: int = int((remaining_time / game_duration) * 100)
+
+                            user_score_list: List[UserGameScore] = game.scores
+
+                            for user_score in user_score_list:
+                                if (
+                                    user_score.user_username == drawing_player
+                                    or user_score.user_username == guessing_player
+                                ):
+                                    user_score.score += score
+
                             if game_id in game_timers:
                                 game_timers[game_id]["task"].cancel()
 
@@ -347,7 +377,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                                     pass
 
                                 del game_timers[game_id]
-                            
+
                             game.round_ended += 1
                             player_count = len(game.players)
                             index = game.current_round % player_count
@@ -360,6 +390,13 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                                 "username": msg["username"],
                                 # "next_player": current_player_username,
                                 "type": "ROUND_END",
+                                "score": [
+                                    {
+                                        "username": user_score.user_username,
+                                        "score": user_score.score,
+                                    }
+                                    for user_score in user_score_list
+                                ],
                             }
                             if game.current_round == game.total_round:
                                 game.is_ended = True
@@ -419,11 +456,13 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                             connections[game_id], websocket, new_msg, to_user=True
                         )
 
-                        task = asyncio.create_task(turn_timer(game_id, current_player_username, True))
+                        task = asyncio.create_task(
+                            turn_timer(game_id, current_player_username, True)
+                        )
 
                         game_timers[game_id] = {
                             "task": task,
-                            "end_time": time.monotonic() + 30
+                            "end_time": time.monotonic() + 30,
                         }
 
             # ---------------- DEFAULT ----------------
@@ -439,6 +478,8 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
         with Session(engine) as session:
             game_user: GameUser = session.get(GameUser, (username, game_id))
             game: Game = session.get(Game, game_id)
+            game_score: UserGameScore = session.get(UserGameScore, (username, game_id))
+
             game_is_started = game.is_started
 
             if game_is_started:
@@ -447,6 +488,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
             else:
                 if game_user:
                     session.delete(game_user)
+                    session.delete(game_score)
 
             session.commit()
             session.refresh(game_user)
