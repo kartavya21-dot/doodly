@@ -30,4 +30,7 @@
 
 ### 14 July
 * Scoring based on time left
-* But the issue starts, when user guess the game stops
+* But the issue starts, when user guess the game stops. There is issue when I am adding user to user_game_score row
+
+### 15 July 
+* Issue is solved, variable was used but not declared (current_player_username) in GUESS state

@@ -29,11 +29,16 @@ class UserGameScore(SQLModel, table=True):
 class User(SQLModel, table=True):
     __tablename__ = "users"
 
-    username: str = Field(primary_key = True, default=None)
+    username: str = Field(primary_key=True, default=None)
     password: str = Field(default=None)
 
-    rooms: List["Room"] | None = Relationship(back_populates="users", link_model=RoomUser)
-    games: List["Game"] | None = Relationship(back_populates="players", link_model=GameUser)
+    rooms: List["Room"] | None = Relationship(
+        back_populates="users", link_model=RoomUser
+    )
+    games: List["Game"] | None = Relationship(
+        back_populates="players", link_model=GameUser
+    )
+
 
 class Room(SQLModel, table=True):
     __tablename__ = "rooms"
@@ -66,6 +71,8 @@ class Game(SQLModel, table=True):
     current_word: Optional[str] = Field(default=None)
 
     room: Room = Relationship(back_populates="games")
-    
+
     players: List["User"] = Relationship(back_populates="games", link_model=GameUser)
-    scores: List["UserGameScore"] = Relationship(back_populates="game")
+    scores: List["UserGameScore"] = Relationship(
+        back_populates="game", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
