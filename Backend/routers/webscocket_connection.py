@@ -362,11 +362,10 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                             user_score_list: List[UserGameScore] = game.scores
 
                             for user_score in user_score_list:
-                                if (
-                                    user_score.user_username == drawing_player
-                                    or user_score.user_username == guessing_player
-                                ):
-                                    user_score.score += score
+                                if user_score.user_username == drawing_player:
+                                    user_score.score += int(score * 0.6)
+                                elif user_score.user_username == guessing_player:
+                                    user_score.score += int(score * 0.5)
 
                             if game_id in game_timers:
                                 game_timers[game_id]["task"].cancel()
