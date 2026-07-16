@@ -35,3 +35,6 @@
 ### 15 July 
 * Issue is solved, variable was used but not declared (current_player_username) in GUESS state
 * **guessing_player** will get **40%** share of score, while **drawing_player** will get **60%** share of score. Reason: think of two player game
+
+### 16 July
+* Created dummy test page to test, nothing else.

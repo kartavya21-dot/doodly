@@ -4,6 +4,7 @@ import Room from "./pages/Room";
 import Game from "./pages/Game";
 import Playground from "./pages/Playground";
 import { UserContextProvider } from "./context/UserContextProvider";
+import Test from "./pages/Test";
 
 export default function App() {
   // if(windows.)
@@ -11,6 +12,7 @@ export default function App() {
     <UserContextProvider>
       <Router>
         <Routes>
+          <Route path="/test" element={<Test />} />
           <Route path="/" element={<Auth />} />
           <Route path="/room" element={<Room />} />
           <Route path="/room/:roomId/game" element={<Game />} />
