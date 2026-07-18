@@ -7,7 +7,6 @@ import { UserContextProvider } from "./context/UserContextProvider";
 import Test from "./pages/Test";
 
 export default function App() {
-  // if(windows.)
   return (
     <UserContextProvider>
       <Router>
