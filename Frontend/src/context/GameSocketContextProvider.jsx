@@ -39,13 +39,12 @@ export function GameSocketProvider({ game, setGame, children }) {
     (canvas) => {
       canvasRef.current = canvas?.current ?? null;
       if (canvasRef.current) {
-        // When a new canvas is registered, replay the history
         const ctx = canvasRef.current.getContext("2d");
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
       }
     },
     [],
-  ); // Re-create if history changes, though this is for initial draw
+  );
 
   const drawSegment = (data) => {
     if (!canvasRef.current) return;
@@ -61,7 +60,7 @@ export function GameSocketProvider({ game, setGame, children }) {
     ctx.moveTo(data.x0, data.y0);
     ctx.lineTo(data.x1, data.y1);
     ctx.stroke();
-  }
+  };
 
   const sendMessage = (data) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
@@ -74,8 +73,8 @@ export function GameSocketProvider({ game, setGame, children }) {
       ...prev,
       {
         ...data,
-        timestamp: Date.now(), // Adds timing anchor
-        id: crypto.randomUUID(), // Safe key for React mapping
+        timestamp: Date.now(),
+        id: crypto.randomUUID(),
       },
     ]);
 
@@ -112,6 +111,9 @@ export function GameSocketProvider({ game, setGame, children }) {
 
       case "CHOOSE_WORD": {
         setMessages((prev) => [...prev, data]);
+        if (data.username === currentUser) {
+          setIsSent(true);
+        }
         break;
       }
 
@@ -132,7 +134,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         if (data.score) setScores(data.score);
         setGame((prev) => ({
           ...prev,
-          current_player: null
+          current_player: null,
         }));
         break;
       }
@@ -201,15 +203,14 @@ export function GameSocketProvider({ game, setGame, children }) {
   }, [game.id]);
 
   useEffect(() => {
-    if(!game) return;
+    if (!game) return;
 
-    if(game.current_player === currentUser) {
+    if (!game.is_ended && game.current_player === currentUser) {
       setUserPlaying(true);
     } else {
       setUserPlaying(false);
     }
-
-  }, [game.current_player])
+  }, [game.current_player, game.is_ended, currentUser]);
 
   return (
     <GameSocketContext.Provider

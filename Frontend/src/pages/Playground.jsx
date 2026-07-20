@@ -67,64 +67,66 @@ const Playground = () => {
     );
   }
 
+  const isMatchEnded = game.is_ended || game.current_round >= game.total_round;
+
   return (
-    <div className="min-h-screen p-3 md:p-6 max-w-7xl mx-auto flex flex-col gap-6">
+    <div className="min-h-screen p-2 md:p-4 max-w-7xl mx-auto flex flex-col gap-3">
       <GameSocketProvider game={game} setGame={setGame}>
         {/* Top Game Bar */}
         {game && (
-          <header className="neon-card rounded-3xl p-4 md:p-5 border border-white/10 shadow-2xl backdrop-blur-xl flex flex-col lg:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-4 w-full lg:w-auto justify-between lg:justify-start">
+          <header className="neon-card rounded-2xl p-3 md:p-4 border border-white/10 shadow-xl backdrop-blur-xl flex flex-col lg:flex-row justify-between items-center gap-3">
+            <div className="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-start">
               <button
                 onClick={() => navigate(`/room/${roomId}/game`)}
-                className="px-3.5 py-2 rounded-2xl bg-slate-900/80 border border-slate-700 hover:border-cyan-400 text-slate-300 hover:text-cyan-400 font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer"
+                className="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-700 hover:border-cyan-400 text-slate-300 hover:text-cyan-400 font-semibold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
               >
-                <ArrowLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Exit Match</span>
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Exit Match</span>
               </button>
 
-              <div className="flex items-center gap-3">
-                <div className="px-3 py-1.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 font-mono text-xs font-bold">
+              <div className="flex items-center gap-2">
+                <div className="px-2.5 py-1 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 font-mono text-xs font-bold">
                   Room #{game.room_id}
                 </div>
-                <div className="px-3 py-1.5 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-purple-300 font-mono text-xs font-bold">
+                <div className="px-2.5 py-1 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-300 font-mono text-xs font-bold">
                   Match #{game.id}
                 </div>
               </div>
             </div>
 
             {/* Middle Stats Badges */}
-            <div className="flex items-center gap-3 flex-wrap justify-center">
+            <div className="flex items-center gap-2 flex-wrap justify-center">
               {/* Status Chip */}
               <div>
-                {game.is_ended ? (
-                  <span className="px-3 py-1.5 text-xs font-bold text-rose-400 bg-rose-500/10 border border-rose-500/30 rounded-full flex items-center gap-1.5">
+                {isMatchEnded ? (
+                  <span className="px-3 py-1 text-xs font-bold text-rose-400 bg-rose-500/10 border border-rose-500/30 rounded-full flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Match Ended
                   </span>
                 ) : game.is_started ? (
-                  <span className="px-3 py-1.5 text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center gap-1.5 animate-pulse">
+                  <span className="px-3 py-1 text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center gap-1 animate-pulse">
                     <Flame className="w-3.5 h-3.5 text-emerald-400" /> Live Match
                   </span>
                 ) : (
-                  <span className="px-3 py-1.5 text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center gap-1.5">
+                  <span className="px-3 py-1 text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" /> Waiting Room
                   </span>
                 )}
               </div>
 
               {/* Round Badge */}
-              <div className="px-3.5 py-1.5 bg-slate-900/80 border border-slate-700/80 rounded-2xl flex items-center gap-2 text-xs">
+              <div className="px-3 py-1 bg-slate-900/80 border border-slate-700/80 rounded-xl flex items-center gap-1.5 text-xs">
                 <span className="text-slate-400 font-semibold">Round</span>
                 <span className="font-extrabold text-white font-mono">
-                  {game.current_round + 1}
+                  {Math.min(game.current_round + 1, game.total_round)}
                 </span>
                 <span className="text-slate-500 font-mono">/ {game.total_round}</span>
               </div>
 
               {/* Current Turn Badge */}
-              {game.is_started && !game.is_ended && (
-                <div className="px-3.5 py-1.5 bg-slate-900/80 border border-indigo-500/30 rounded-2xl flex items-center gap-2 text-xs">
+              {game.is_started && !isMatchEnded && (
+                <div className="px-3 py-1 bg-slate-900/80 border border-indigo-500/30 rounded-xl flex items-center gap-2 text-xs">
                   <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                  <span className="text-slate-400">Current Turn:</span>
+                  <span className="text-slate-400">Turn:</span>
                   <span className="font-bold text-cyan-300">
                     {typeof game.current_player === "object"
                       ? game.current_player?.name
@@ -137,7 +139,7 @@ const Playground = () => {
             {/* Players Summary */}
             <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
               <Users className="w-4 h-4 text-slate-400" />
-              <span className="truncate max-w-[200px]">
+              <span className="truncate max-w-[180px]">
                 {Array.isArray(game.players)
                   ? game.players.join(", ")
                   : String(game.players || "None")}
@@ -149,29 +151,30 @@ const Playground = () => {
         {/* Real-time WebSocket Scores Banner */}
         <LiveRoundScoreboard />
 
-        {/* REST API End-of-Game Leaderboard */}
-        {game && game.is_ended && (
-          <GameScoreboard gameId={game.id} />
+        {/* Pre-Game Lobby View */}
+        {game && !game?.is_started && !isMatchEnded && room && (
+          <LobbyArea setLogs={() => {}} room={room} />
         )}
 
-        {/* Canvas & Drawing Board */}
-        <Canvas game={game} />
+        {/* Main Arena (Side-by-Side Canvas & Chat without scrolling) */}
+        {game && (game.is_started || isMatchEnded) && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+            {/* Canvas Column */}
+            <div className="lg:col-span-7 xl:col-span-8">
+              <Canvas game={game} />
+            </div>
 
-        {/* Pre-game Lobby or Active Chat Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          <div className="lg:col-span-2 space-y-6">
-            {game && !game?.is_ended && !game?.is_started && room && (
-              <LobbyArea setLogs={() => {}} room={room} />
-            )}
-          </div>
-
-          {/* Right Chat Column when game is running */}
-          {game && !game?.is_ended && game?.is_started && (
-            <div className="lg:col-span-1">
+            {/* Chat Column (Allowed during live match AND post-game ended state) */}
+            <div className="lg:col-span-5 xl:col-span-4">
               <ChatArea room={room} setLogs={() => {}} game={game} setGame={setGame} />
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* REST API End-of-Game Leaderboard */}
+        {isMatchEnded && (
+          <GameScoreboard gameId={game.id} />
+        )}
       </GameSocketProvider>
     </div>
   );
