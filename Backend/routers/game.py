@@ -71,3 +71,8 @@ def delete_game(game_id: int, session: SessionDep):
     session.delete(db_game)
     session.commit()
     return db_game
+
+@router.get("/{game_id}/scores")
+def get_game_scores(game_id: int, session: SessionDep):
+    db_game: Game = session.get(Game, game_id)
+    return db_game.scores

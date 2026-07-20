@@ -1,34 +1,40 @@
-import React, { use, useContext, useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useUser } from "../context/UserContextProvider";
 import { useGameSocket } from "../context/GameSocketContextProvider";
 import { getGamePlayers } from "../services/game";
+import {
+  Users,
+  UserCheck,
+  Play,
+  Crown,
+  Sparkles,
+  Radio,
+  UserPlus,
+  Zap,
+} from "lucide-react";
 
 const LobbyArea = ({ setLogs, room }) => {
-  const { socket, isConnected, sendMessage, game, setGame, lobbyPlayers, setLobbyPlayers } = useGameSocket();
+  const { sendMessage, game, lobbyPlayers, setLobbyPlayers } = useGameSocket();
   const currentUser = useUser().username;
-  // const [lobbyPlayers, setLobbyPlayers] = useState([]);
-  const [playerWithStatus, setPlayerWithStatus] = useState([]);
 
   const fetchGamePlayers = async () => {
     try {
       const gamePlayers = await getGamePlayers(game.id);
 
-      // Create lookup
       const playerMap = gamePlayers.reduce((acc, player) => {
         acc[player.user_username] = player;
         return acc;
       }, {});
 
-      // Merge room users with game data
-      const mergedPlayers = room.users.map((user) => ({
+      const mergedPlayers = room?.users?.map((user) => ({
         ...user,
         is_active: playerMap[user.username]?.is_active ?? false,
         turn: playerMap[user.username]?.turn ?? null,
-      }));
+      })) || [];
 
       setLobbyPlayers(mergedPlayers);
     } catch (error) {
-      alert(error);
+      console.error(error);
     }
   };
 
@@ -39,124 +45,101 @@ const LobbyArea = ({ setLogs, room }) => {
   }, [room, game]);
 
   const handleJoin = () => {
-    sendMessage(
-      {
-        type: "JOIN",
-        username: currentUser,
-      }
-    );
+    sendMessage({
+      type: "JOIN",
+      username: currentUser,
+    });
   };
 
   const handleStart = () => {
     sendMessage({
       type: "START",
       username: currentUser,
-    })
+    });
   };
 
-  // handled in context
-  // useEffect(() => {
-  //   const socketInstance = socket.current;
-
-  //   if (!socketInstance) return;
-
-  //   const handleIncomingMessage = (event) => {
-  //     const messagePayload = JSON.parse(event.data);
-
-  //     const newLog = {
-  //       ...messagePayload,
-  //       timestamp: Date.now(), // Adds timing anchor
-  //       id: crypto.randomUUID(), // Safe key for React mapping
-  //     };
-
-  //     setLogs((prevLogs) => [...prevLogs, newLog]);
-
-  //     if (messagePayload.type === "JOIN") {
-  //       if (messagePayload.username === currentUser) {
-  //         setJoinedGame(true);
-  //       }
-  //       setLobbyPlayers((prev) =>
-  //         prev.map((player) => {
-  //           if (player.username === messagePayload.username) {
-  //             return { ...player, is_active: true };
-  //           }
-  //           return player;
-  //         }),
-  //       );
-  //     }
-
-  //     if (messagePayload.type === "WIN") {
-  //       setGame((prev) => ({
-  //         ...prev,
-  //         current_round: game.current_round + 1,
-  //       }));
-  //     }
-
-  //     if (messagePayload.type === "GAME_END") {
-  //       setGame((prev) => ({
-  //         ...prev,
-  //         is_ended: true,
-  //       }));
-  //     }
-
-  //     if (messagePayload.type === "LOST_CONNECTION") {
-  //       setLobbyPlayers((prev) =>
-  //         prev.map((player) => {
-  //           if (player.username === messagePayload.username) {
-  //             return { ...player, is_active: false };
-  //           }
-  //           return player;
-  //         }),
-  //       );
-  //     }
-
-  //     if (messagePayload.type === "START") {
-  //       setGame((prev) => ({
-  //         ...prev,
-  //         is_started: true,
-  //         current_player: messagePayload.username,
-  //       }));
-  //     }
-  //     console.log("Inconing lobby: ", game);
-  //   };
-
-  //   socketInstance.addEventListener("message", handleIncomingMessage);
-
-  //   return () => {
-  //     socketInstance.removeEventListener("message", handleIncomingMessage);
-  //   };
-  // }, []);
-
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-900 to-gray-800 text-white p-6 flex flex-col items-center">
+    <div className="w-full neon-card rounded-3xl p-6 border border-white/10 shadow-2xl backdrop-blur-xl flex flex-col items-center">
       {/* Title */}
-      <h1 className="text-4xl font-bold mb-2 tracking-wide">Game Lobby</h1>
-      <p className="text-gray-400 mb-6">Waiting for players to join...</p>
+      <div className="text-center mb-6">
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <h2 className="text-2xl font-extrabold text-white tracking-wider font-mono">
+            GAME PRE-LOBBY
+          </h2>
+          <Sparkles className="w-5 h-5 text-cyan-400 animate-pulse" />
+        </div>
+        <p className="text-xs text-slate-400">
+          Gathering players for Match #{game?.id}. Join in and hit Start when ready!
+        </p>
+      </div>
 
       {/* Players Card */}
-      <div className="w-full max-w-md bg-gray-900/60 backdrop-blur-lg border border-gray-700 rounded-2xl shadow-xl p-5">
-        <h2 className="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">
-          Players
-        </h2>
+      <div className="w-full max-w-lg bg-slate-950/80 border border-slate-800 rounded-2xl p-5 mb-6">
+        <div className="flex justify-between items-center pb-3 mb-4 border-b border-slate-800">
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-cyan-400" />
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+              Connected Players ({lobbyPlayers?.length || 0})
+            </h3>
+          </div>
+          <span className="text-[10px] font-mono text-slate-500 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+            WS LIVE
+          </span>
+        </div>
 
         <div className="flex flex-col gap-3">
-          {Array.from(lobbyPlayers)?.map((player) => {
+          {Array.from(lobbyPlayers || [])?.map((player) => {
+            const isAdmin = player.username === room?.admin_username;
+            const isMe = player.username === currentUser;
+
             return (
               <div
-                key={player.user_username}
-                className="flex justify-between items-center bg-gray-800 hover:bg-gray-700 transition-all duration-200 px-4 py-3 rounded-xl"
+                key={player.username || player.user_username}
+                className={`flex justify-between items-center px-4 py-3 rounded-xl border transition-all duration-200 ${
+                  isMe
+                    ? "bg-slate-900 border-cyan-500/40 shadow-sm shadow-cyan-500/10"
+                    : "bg-slate-900/60 border-slate-800 hover:border-slate-700"
+                }`}
               >
-                <h3 className="text-lg font-medium">{player.username}</h3>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-500 to-indigo-500 p-0.5 flex items-center justify-center">
+                    <div className="w-full h-full bg-slate-950 rounded-[6px] flex items-center justify-center">
+                      <UserCheck className="w-4 h-4 text-cyan-400" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                      <span>{player.username}</span>
+                      {isMe && (
+                        <span className="text-[10px] font-mono bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-1.5 py-0.2 rounded">
+                          You
+                        </span>
+                      )}
+                      {isAdmin && (
+                        <span className="text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 px-1.5 py-0.2 rounded flex items-center gap-1">
+                          <Crown className="w-3 h-3 text-amber-400" /> Admin
+                        </span>
+                      )}
+                    </h4>
+                  </div>
+                </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-400">
+                  <span
+                    className={`text-xs font-semibold ${
+                      player.is_active ? "text-emerald-400" : "text-slate-500"
+                    }`}
+                  >
                     {player.is_active ? "Online" : "Offline"}
                   </span>
                   <div
-                    className={`${
-                      player.is_active ? "bg-green-500" : "bg-red-500"
-                    } w-3 h-3 rounded-full shadow-md`}
-                  ></div>
+                    className={`w-2.5 h-2.5 rounded-full ${
+                      player.is_active
+                        ? "bg-emerald-400 shadow-[0_0_8px_#22c55e] animate-pulse"
+                        : "bg-slate-600"
+                    }`}
+                  />
                 </div>
               </div>
             );
@@ -164,21 +147,23 @@ const LobbyArea = ({ setLogs, room }) => {
         </div>
       </div>
 
-      {/* Buttons */}
-      <div className="flex gap-4 mt-6">
+      {/* Action Buttons */}
+      <div className="flex flex-wrap gap-4 justify-center">
         <button
           onClick={handleJoin}
-          className="px-6 py-2 rounded-xl bg-green-600 hover:bg-green-500 active:scale-95 transition-all duration-150 shadow-lg disabled:bg-gray-600 disabled:cursor-not-allowed"
+          className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-sm flex items-center gap-2 transition-all shadow-lg hover:shadow-emerald-500/20 active:scale-95 cursor-pointer"
         >
-          Join
+          <UserPlus className="w-4 h-4" />
+          <span>Join Arena</span>
         </button>
 
         {currentUser === room?.admin_username && (
           <button
             onClick={handleStart}
-            className="px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 transition-all duration-150 shadow-lg"
+            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 hover:from-pink-400 hover:to-indigo-500 text-white font-bold text-sm flex items-center gap-2 transition-all shadow-lg hover:shadow-pink-500/20 active:scale-95 cursor-pointer"
           >
-            Start Game
+            <Play className="w-4 h-4 fill-current" />
+            <span>Start Match Now</span>
           </button>
         )}
       </div>

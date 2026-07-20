@@ -8,6 +8,7 @@ export default function Board() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
     const parent = canvas.parentElement;
 
     canvas.width = parent.clientWidth;
@@ -54,7 +55,7 @@ export default function Board() {
       y0: prevPoint.current.y,
       x1: curr.x,
       y1: curr.y,
-      color: "#000",
+      color: "#0f172a",
       lineWidth: 4,
     };
 
@@ -63,7 +64,6 @@ export default function Board() {
     sendMessage(drawData);
 
     prevPoint.current = curr;
-    
   };
 
   const handleMouseUp = () => {
@@ -78,11 +78,9 @@ export default function Board() {
       onMouseMove={userPlaying ? handleMouseMove : () => {}}
       onMouseUp={userPlaying ? handleMouseUp : () => {}}
       onMouseLeave={userPlaying ? handleMouseUp : () => {}}
-      style={{
-        width: "100%",
-        height: "100%",
-        display: "block",
-      }}
+      className={`w-full h-full block bg-white rounded-xl ${
+        userPlaying ? "cursor-crosshair" : "cursor-not-allowed"
+      }`}
     />
   );
 }
