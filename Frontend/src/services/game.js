@@ -23,4 +23,9 @@ export const getGamePlayers = async (gameId) => {
 export const deleteGame = async (gameId) => {
   const response = await api.delete(`/game/${gameId}/delete`);
   return response.data;
-}
+};
+
+export const getGameScores = async (gameId) => {
+  const response = await api.get(`/game/${gameId}/scores`);
+  return response.data;
+};

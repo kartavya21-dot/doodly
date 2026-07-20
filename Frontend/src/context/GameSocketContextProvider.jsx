@@ -31,6 +31,8 @@ export function GameSocketProvider({ game, setGame, children }) {
 
   const [userPlaying, setUserPlaying] = useState(false);
 
+  const [scores, setScores] = useState([]);
+
   const canvasRef = useRef(null);
 
   const registerCanvas = useCallback(
@@ -76,6 +78,10 @@ export function GameSocketProvider({ game, setGame, children }) {
         id: crypto.randomUUID(), // Safe key for React mapping
       },
     ]);
+
+    if (data.score && Array.isArray(data.score)) {
+      setScores(data.score);
+    }
 
     switch (data.type) {
       case "JOIN": {
@@ -123,6 +129,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         setSelectedWord(null);
         setIsSent(false);
         setMessages((prev) => [...prev, data]);
+        if (data.score) setScores(data.score);
         setGame((prev) => ({
           ...prev,
           current_player: null
@@ -145,6 +152,7 @@ export function GameSocketProvider({ game, setGame, children }) {
       case "GAME_END": {
         setSelectedWord(null);
         setIsSent(false);
+        if (data.score) setScores(data.score);
         setGame((prev) => ({
           ...prev,
           current_player: null,
@@ -220,6 +228,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         lobbyPlayers,
         setLobbyPlayers,
         logs,
+        scores,
 
         registerCanvas,
         drawSegment,

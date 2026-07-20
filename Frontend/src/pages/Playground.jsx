@@ -6,19 +6,15 @@ import LobbyArea from "../component/LobbyArea";
 import { getRoomById } from "../services/room";
 import { GameSocketProvider } from "../context/GameSocketContextProvider";
 import ChatArea from "./ChatArea";
-import GameLogs from "../component/GameLogs";
+import GameScoreboard from "../component/GameScoreboard";
+import LiveRoundScoreboard from "../component/LiveRoundScoreboard";
 import {
   ArrowLeft,
-  Crown,
   Flame,
-  Radio,
   Clock,
   CheckCircle2,
-  User,
   Users,
   Loader2,
-  Terminal,
-  Sparkles,
   Trophy,
 } from "lucide-react";
 
@@ -27,7 +23,7 @@ const Playground = () => {
   const navigate = useNavigate();
   const [game, setGame] = useState(null);
   const [room, setRoom] = useState(null);
-  const [logs, setLogs] = useState([]);
+
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchGame = async () => {
@@ -150,33 +146,29 @@ const Playground = () => {
           </header>
         )}
 
-        {/* Game Finished Overlay Banner */}
-        {game && game?.is_ended && (
-          <div className="neon-card rounded-3xl p-6 border border-rose-500/30 bg-rose-500/5 text-center flex flex-col items-center gap-2 my-2">
-            <Trophy className="w-10 h-10 text-yellow-400 animate-bounce" />
-            <h3 className="text-xl font-extrabold text-white">This Match Has Concluded</h3>
-            <p className="text-xs text-slate-400">Great doodling! Check final standings or return to the room lobby to start a new match.</p>
-          </div>
+        {/* Real-time WebSocket Scores Banner */}
+        <LiveRoundScoreboard />
+
+        {/* REST API End-of-Game Leaderboard */}
+        {game && game.is_ended && (
+          <GameScoreboard gameId={game.id} />
         )}
 
-        {/* Canvas & Interactive Area */}
+        {/* Canvas & Drawing Board */}
         <Canvas game={game} />
 
         {/* Pre-game Lobby or Active Chat Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           <div className="lg:col-span-2 space-y-6">
             {game && !game?.is_ended && !game?.is_started && room && (
-              <LobbyArea setLogs={setLogs} room={room} />
+              <LobbyArea setLogs={() => {}} room={room} />
             )}
-
-            {/* Live Event Feed Console */}
-            <GameLogs />
           </div>
 
           {/* Right Chat Column when game is running */}
           {game && !game?.is_ended && game?.is_started && (
             <div className="lg:col-span-1">
-              <ChatArea room={room} setLogs={setLogs} game={game} setGame={setGame} />
+              <ChatArea room={room} setLogs={() => {}} game={game} setGame={setGame} />
             </div>
           )}
         </div>
