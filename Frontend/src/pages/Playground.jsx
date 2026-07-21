@@ -7,7 +7,6 @@ import { getRoomById } from "../services/room";
 import { GameSocketProvider } from "../context/GameSocketContextProvider";
 import ChatArea from "./ChatArea";
 import GameScoreboard from "../component/GameScoreboard";
-import LiveRoundScoreboard from "../component/LiveRoundScoreboard";
 import RoundEndModal from "../component/RoundEndModal";
 import {
   ArrowLeft,
@@ -70,8 +69,8 @@ const Playground = () => {
   return (
     <div className="min-h-screen p-2 md:p-3 max-w-7xl mx-auto flex flex-col gap-2">
       <GameSocketProvider game={game} setGame={setGame}>
-        {/* Animated Round End Popup Modal */}
-        <RoundEndModal />
+        {/* Animated Round End Popup Modal during active rounds */}
+        {!isMatchEnded && <RoundEndModal />}
 
         {/* Ultra-Slim Header Bar */}
         {game && (
@@ -101,7 +100,7 @@ const Playground = () => {
               <div>
                 {isMatchEnded ? (
                   <span className="px-2 py-0.5 text-[10px] font-bold text-red-700 bg-red-50 border border-red-200 rounded-full flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> Ended
+                    <CheckCircle2 className="w-3 h-3" /> Match Concluded
                   </span>
                 ) : game.is_started ? (
                   <span className="px-2 py-0.5 text-[10px] font-bold text-green-700 bg-green-50 border border-green-200 rounded-full flex items-center gap-1 animate-pulse">
@@ -149,24 +148,16 @@ const Playground = () => {
           </header>
         )}
 
-        {/* Real-time WebSocket Scores Banner */}
-        <LiveRoundScoreboard />
-
         {/* Pre-Game Lobby View */}
         {game && !game?.is_started && !isMatchEnded && room && (
           <LobbyArea setLogs={() => {}} room={room} />
         )}
 
-        {/* Main Arena (Canvas & Chat Side-by-Side in One Screen) */}
-        {game && (game.is_started || isMatchEnded) && (
+        {/* Active Match View: Canvas & Chat Side-by-Side (ONLY shown while game is active) */}
+        {game && game.is_started && !isMatchEnded && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
-            {/* Left Column: Canvas & Leaderboard at Top */}
+            {/* Left Column: Canvas */}
             <div className="lg:col-span-7 xl:col-span-8 flex flex-col">
-              {/* REST API End-of-Game Leaderboard at TOP of Canvas */}
-              {isMatchEnded && (
-                <GameScoreboard gameId={game.id} />
-              )}
-
               <Canvas game={game} />
             </div>
 
@@ -174,6 +165,13 @@ const Playground = () => {
             <div className="lg:col-span-5 xl:col-span-4">
               <ChatArea room={room} setLogs={() => {}} game={game} setGame={setGame} />
             </div>
+          </div>
+        )}
+
+        {/* Post-Game View: ONLY Leaderboard Modal Screen is rendered (Canvas & Chat are hidden) */}
+        {isMatchEnded && (
+          <div className="py-4">
+            <GameScoreboard gameId={game.id} />
           </div>
         )}
       </GameSocketProvider>
