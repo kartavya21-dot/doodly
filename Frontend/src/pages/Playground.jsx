@@ -8,6 +8,7 @@ import { GameSocketProvider } from "../context/GameSocketContextProvider";
 import ChatArea from "./ChatArea";
 import GameScoreboard from "../component/GameScoreboard";
 import LiveRoundScoreboard from "../component/LiveRoundScoreboard";
+import RoundEndModal from "../component/RoundEndModal";
 import {
   ArrowLeft,
   Flame,
@@ -71,6 +72,9 @@ const Playground = () => {
   return (
     <div className="min-h-screen p-2 md:p-3 max-w-7xl mx-auto flex flex-col gap-2">
       <GameSocketProvider game={game} setGame={setGame}>
+        {/* Animated Round End Popup Modal */}
+        <RoundEndModal />
+
         {/* Ultra-Slim Header Bar */}
         {game && (
           <header className="neon-card rounded-xl px-3 py-1.5 border border-white/10 shadow-lg backdrop-blur-xl flex flex-wrap items-center justify-between gap-2 text-xs">

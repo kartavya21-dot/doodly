@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useGameSocket } from "../context/GameSocketContextProvider";
 import { useUser } from "../context/UserContextProvider";
 
-export default function Board() {
+export default function Board({ color = "#0f172a", lineWidth = 4 }) {
   const canvasRef = useRef(null);
   const { registerCanvas, sendMessage, drawSegment, userPlaying } = useGameSocket();
 
@@ -43,8 +43,8 @@ export default function Board() {
 
     const now = performance.now();
 
-    // 60 FPS
-    if (now - lastFrame.current < 30) return;
+    // 60 FPS throttle
+    if (now - lastFrame.current < 25) return;
     lastFrame.current = now;
 
     const curr = getCoords(e);
@@ -55,8 +55,8 @@ export default function Board() {
       y0: prevPoint.current.y,
       x1: curr.x,
       y1: curr.y,
-      color: "#0f172a",
-      lineWidth: 4,
+      color: color,
+      lineWidth: lineWidth,
     };
 
     // Draw locally first

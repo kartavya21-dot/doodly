@@ -38,3 +38,8 @@
 
 ### 16 July
 * Created dummy test page to test, nothing else.
+
+### 20 July
+* Antigravity changing UI - Neon mode
+
+### 21 July

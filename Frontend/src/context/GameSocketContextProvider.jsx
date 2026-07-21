@@ -33,6 +33,8 @@ export function GameSocketProvider({ game, setGame, children }) {
 
   const [scores, setScores] = useState([]);
 
+  const [lastRoundResult, setLastRoundResult] = useState(null);
+
   const canvasRef = useRef(null);
 
   const registerCanvas = useCallback(
@@ -96,6 +98,7 @@ export function GameSocketProvider({ game, setGame, children }) {
       }
 
       case "START": {
+        setLastRoundResult(null);
         setGame((prev) => ({
           ...prev,
           is_started: true,
@@ -132,6 +135,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         setIsSent(false);
         setMessages((prev) => [...prev, data]);
         if (data.score) setScores(data.score);
+        setLastRoundResult(data);
         setGame((prev) => ({
           ...prev,
           current_player: null,
@@ -142,6 +146,7 @@ export function GameSocketProvider({ game, setGame, children }) {
       case "NEXT_ROUND": {
         setSelectedWord(null);
         setIsSent(false);
+        setLastRoundResult(null);
         setMessages((prev) => [...prev, data]);
         setGame((prev) => ({
           ...prev,
@@ -154,6 +159,7 @@ export function GameSocketProvider({ game, setGame, children }) {
       case "GAME_END": {
         setSelectedWord(null);
         setIsSent(false);
+        setLastRoundResult(null);
         if (data.score) setScores(data.score);
         setGame((prev) => ({
           ...prev,
@@ -230,6 +236,8 @@ export function GameSocketProvider({ game, setGame, children }) {
         setLobbyPlayers,
         logs,
         scores,
+        lastRoundResult,
+        setLastRoundResult,
 
         registerCanvas,
         drawSegment,
