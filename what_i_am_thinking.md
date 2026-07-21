@@ -43,3 +43,5 @@
 * Antigravity changing UI - Neon mode
 
 ### 21 July
+* Changed UI to be like Google
+

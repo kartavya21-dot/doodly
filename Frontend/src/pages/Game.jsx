@@ -79,24 +79,24 @@ export default function Game() {
   return (
     <div className="min-h-screen p-4 md:p-8 max-w-5xl mx-auto flex flex-col gap-6">
       {/* Top Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 neon-card rounded-3xl p-5 border border-white/10 shadow-2xl backdrop-blur-xl">
+      <div className="flex flex-wrap items-center justify-between gap-4 neon-card rounded-3xl p-5 border border-slate-200 bg-white/90 shadow-lg shadow-slate-200/50 backdrop-blur-xl">
         <button
           onClick={() => navigate("/room")}
-          className="px-4 py-2 rounded-2xl bg-slate-900/80 border border-slate-700 hover:border-cyan-400 text-slate-300 hover:text-cyan-400 font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer"
+          className="px-4 py-2 rounded-2xl bg-white border border-slate-300 hover:border-blue-500 text-slate-700 hover:text-blue-600 font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-sm"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Lobby</span>
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+          <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600">
             <Gamepad2 className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-xs uppercase tracking-wider text-slate-400 font-mono">
+            <h2 className="text-xs uppercase tracking-wider text-slate-500 font-mono font-semibold">
               Room Control Center
             </h2>
-            <p className="text-lg font-bold text-white flex items-center gap-2 font-mono">
+            <p className="text-lg font-bold text-slate-900 flex items-center gap-2 font-mono">
               <span>Room ID: #{roomId}</span>
             </p>
           </div>
@@ -104,17 +104,17 @@ export default function Game() {
       </div>
 
       {/* Start New Game Card */}
-      <div className="neon-card rounded-3xl p-6 border border-emerald-500/20 hover:border-emerald-500/40 transition-all max-w-xl mx-auto w-full">
+      <div className="neon-card rounded-3xl p-6 border border-slate-200 bg-white max-w-xl mx-auto w-full shadow-md">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
             <Plus className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <span>Start New Match</span>
-              <Sparkles className="w-4 h-4 text-emerald-400" />
+              <Sparkles className="w-4 h-4 text-emerald-600" />
             </h3>
-            <p className="text-xs text-slate-400">Configure round limit for the next match</p>
+            <p className="text-xs text-slate-500">Configure round limit for the next match</p>
           </div>
         </div>
 
@@ -128,14 +128,14 @@ export default function Game() {
               max="20"
               onChange={(e) => setGameTotalRound(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-2xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 transition-all text-sm font-mono"
+              className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all text-sm font-mono font-semibold"
             />
           </div>
 
           <button
             type="submit"
             disabled={isCreating}
-            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-sm flex items-center gap-2 transition-all shadow-lg hover:shadow-emerald-500/20 active:scale-95 cursor-pointer disabled:opacity-50"
+            className="px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer disabled:opacity-50"
           >
             {isCreating ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -152,22 +152,22 @@ export default function Game() {
       {/* Games List */}
       <div className="max-w-3xl mx-auto w-full">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-extrabold text-white flex items-center gap-2">
-            <Layers className="w-5 h-5 text-cyan-400" />
+          <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+            <Layers className="w-5 h-5 text-blue-600" />
             <span>Past & Active Matches</span>
           </h3>
-          <span className="text-xs font-mono text-slate-400">
+          <span className="text-xs font-mono text-slate-500 font-semibold">
             Total Matches: {games?.length || 0}
           </span>
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-12 neon-card rounded-3xl border border-white/5">
-            <Loader2 className="w-7 h-7 text-cyan-400 animate-spin mr-3" />
-            <span className="text-sm text-slate-400 font-mono">Fetching match records...</span>
+          <div className="flex items-center justify-center py-12 neon-card rounded-3xl border border-slate-200 bg-white">
+            <Loader2 className="w-7 h-7 text-blue-600 animate-spin mr-3" />
+            <span className="text-sm text-slate-500 font-mono">Fetching match records...</span>
           </div>
         ) : games?.length === 0 ? (
-          <div className="neon-card rounded-3xl p-8 text-center text-slate-500 text-sm border border-white/5">
+          <div className="neon-card rounded-3xl p-8 text-center text-slate-500 text-sm border border-slate-200 bg-white">
             No matches created yet in this room. Launch one above!
           </div>
         ) : (
@@ -176,21 +176,21 @@ export default function Game() {
               <div
                 key={g.id}
                 onClick={() => navigate(`${g.id}`)}
-                className="neon-card rounded-2xl p-5 border border-white/10 hover:border-cyan-400/50 transition-all cursor-pointer group flex flex-col md:flex-row justify-between md:items-center gap-4 relative overflow-hidden"
+                className="neon-card rounded-2xl p-5 border border-slate-200 bg-white hover:border-blue-400 transition-all cursor-pointer group flex flex-col md:flex-row justify-between md:items-center gap-4 relative overflow-hidden shadow-sm"
               >
                 <div>
                   <div className="flex items-center gap-3 mb-1">
-                    <span className="font-extrabold text-lg text-white group-hover:text-cyan-300 transition-colors font-mono">
+                    <span className="font-extrabold text-lg text-slate-900 group-hover:text-blue-600 transition-colors font-mono">
                       Match #{g.id}
                     </span>
 
                     <span
                       className={`text-[11px] font-bold px-3 py-0.5 rounded-full border flex items-center gap-1.5 ${
                         g.is_ended
-                          ? "bg-rose-500/10 text-rose-400 border-rose-500/30"
+                          ? "bg-red-50 text-red-700 border-red-200"
                           : g.is_started
-                          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 animate-pulse"
-                          : "bg-cyan-500/10 text-cyan-400 border-cyan-500/30"
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200 animate-pulse"
+                          : "bg-blue-50 text-blue-700 border-blue-200"
                       }`}
                     >
                       {g.is_ended ? (
@@ -199,7 +199,7 @@ export default function Game() {
                         </>
                       ) : g.is_started ? (
                         <>
-                          <Flame className="w-3 h-3 text-emerald-400" /> Live Match
+                          <Flame className="w-3 h-3 text-emerald-600" /> Live Match
                         </>
                       ) : (
                         <>
@@ -209,9 +209,9 @@ export default function Game() {
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs text-slate-400">
+                  <div className="flex items-center gap-4 text-xs text-slate-500">
                     <span>
-                      Rounds: <strong className="text-slate-200">{g.total_round}</strong>
+                      Rounds: <strong className="text-slate-800">{g.total_round}</strong>
                     </span>
                     <span>•</span>
                     <span>
@@ -224,7 +224,7 @@ export default function Game() {
                   <button
                     onClick={(e) => handleDeleteGame(g.id, e)}
                     disabled={deletingId === g.id}
-                    className="p-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 hover:text-rose-300 transition-all cursor-pointer flex items-center gap-1 text-xs font-semibold"
+                    className="p-2.5 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 transition-all cursor-pointer flex items-center gap-1 text-xs font-semibold"
                     title="Delete Match"
                   >
                     {deletingId === g.id ? (
@@ -239,7 +239,7 @@ export default function Game() {
 
                   <button
                     onClick={() => navigate(`${g.id}`)}
-                    className="px-4 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500 border border-cyan-500/40 text-cyan-300 hover:text-white transition-all font-bold text-xs flex items-center gap-2 cursor-pointer group-hover:shadow-lg group-hover:shadow-cyan-500/20"
+                    className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-all font-bold text-xs flex items-center gap-2 cursor-pointer shadow-sm"
                   >
                     <span>Play Match</span>
                     <ArrowLeft className="w-3.5 h-3.5 rotate-180" />

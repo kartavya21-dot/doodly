@@ -71,26 +71,30 @@ const Canvas = () => {
 
   return (
     <div className="w-full flex justify-center py-1">
-      <div className="w-full neon-card rounded-3xl p-4 md:p-5 border border-white/10 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+      <div className="w-full neon-card rounded-3xl p-4 md:p-5 border border-slate-200 bg-white/95 shadow-lg relative overflow-hidden backdrop-blur-xl">
         {/* Top bar header */}
         <div className="flex flex-wrap justify-between items-center mb-3 gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-pink-500 via-purple-500 to-cyan-400 p-0.5 shadow-md shadow-pink-500/20">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <Palette className="w-4 h-4 text-cyan-400" />
-              </div>
+            <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-sm">
+              <Palette className="w-4 h-4" />
             </div>
 
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-extrabold text-white tracking-wide font-mono">
-                  DOODLY CANVAS
+              <div className="flex items-center gap-1.5">
+                <h2 className="text-lg font-extrabold text-slate-900 tracking-wide font-mono">
+                  <span className="text-blue-600">D</span>
+                  <span className="text-red-500">o</span>
+                  <span className="text-amber-500">o</span>
+                  <span className="text-blue-600">d</span>
+                  <span className="text-green-600">l</span>
+                  <span className="text-red-500">y</span>
+                  <span className="text-slate-800 ml-1.5">Canvas</span>
                 </h2>
-                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-slate-400">
-                <Brush className="w-3.5 h-3.5 text-purple-400" />
+              <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                <Brush className="w-3.5 h-3.5 text-purple-600" />
                 <span>
                   {game?.is_ended ? (
                     "Match Concluded"
@@ -99,7 +103,7 @@ const Canvas = () => {
                   ) : (
                     <>
                       Current Artist:{" "}
-                      <strong className="text-cyan-300 font-bold">
+                      <strong className="text-blue-600 font-bold">
                         {game?.current_player || "Choosing word..."}
                       </strong>
                     </>
@@ -112,15 +116,15 @@ const Canvas = () => {
           {/* Neon Timer Indicator - VISIBLE TO EVERYONE DURING GAME */}
           {game?.is_started && !game?.is_ended && (
             <div
-              className={`min-w-[100px] px-3.5 py-1.5 rounded-xl flex items-center justify-center gap-2 border-2 text-sm font-extrabold font-mono transition-all duration-300 shadow-lg ${
+              className={`min-w-[100px] px-3.5 py-1.5 rounded-xl flex items-center justify-center gap-2 border-2 text-sm font-extrabold font-mono transition-all duration-300 shadow-sm ${
                 timeLeft === 0
-                  ? "border-slate-600 text-slate-400 bg-slate-900/50"
+                  ? "border-slate-300 text-slate-500 bg-slate-100"
                   : timeLeft <= 10
-                  ? "border-rose-500 text-rose-400 bg-rose-500/20 animate-pulse shadow-rose-500/40"
-                  : "border-cyan-400 text-cyan-300 bg-cyan-500/10 shadow-cyan-500/20"
+                  ? "border-red-400 text-red-600 bg-red-50 animate-pulse"
+                  : "border-blue-400 text-blue-700 bg-blue-50"
               }`}
             >
-              <Clock className="w-4 h-4 text-cyan-400" />
+              <Clock className="w-4 h-4 text-blue-600" />
               <span>{timeLeft === 0 ? "Time's Up" : `${timeLeft}s`}</span>
             </div>
           )}
@@ -128,11 +132,11 @@ const Canvas = () => {
 
         {/* Paintbrush Toolkit Bar (Visible for active drawer) */}
         {userPlaying && !game?.is_ended && (
-          <div className="mb-3 p-2.5 rounded-2xl bg-slate-950/90 border border-slate-800 flex flex-wrap items-center justify-between gap-3 shadow-inner">
+          <div className="mb-3 p-2.5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-inner">
             {/* Colors Palette */}
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 text-slate-400 mr-1">
-                <Palette className="w-4 h-4 text-cyan-400" />
+              <div className="flex items-center gap-1.5 text-slate-600 mr-1">
+                <Palette className="w-4 h-4 text-blue-600" />
                 <span className="text-[11px] font-bold uppercase tracking-wider font-mono hidden sm:inline">
                   Color:
                 </span>
@@ -151,11 +155,11 @@ const Canvas = () => {
                       style={{ backgroundColor: c.hex }}
                       className={`w-6 h-6 rounded-full border-2 transition-all duration-150 flex items-center justify-center cursor-pointer ${
                         isSelected
-                          ? "border-cyan-400 scale-125 shadow-md shadow-cyan-500/30 ring-2 ring-cyan-400/50"
-                          : "border-slate-700 hover:scale-110"
+                          ? "border-blue-600 scale-125 shadow-md ring-2 ring-blue-400/40"
+                          : "border-slate-300 hover:scale-110"
                       }`}
                     >
-                      {isEraser && <Eraser className="w-3 h-3 text-slate-900" />}
+                      {isEraser && <Eraser className="w-3 h-3 text-slate-700" />}
                       {isSelected && !isEraser && (
                         <Check className="w-3.5 h-3.5 text-white stroke-[3]" />
                       )}
@@ -167,14 +171,14 @@ const Canvas = () => {
 
             {/* Thickness / Size Picker */}
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 text-slate-400 mr-1">
-                <Sliders className="w-3.5 h-3.5 text-purple-400" />
+              <div className="flex items-center gap-1 text-slate-600 mr-1">
+                <Sliders className="w-3.5 h-3.5 text-purple-600" />
                 <span className="text-[11px] font-bold uppercase tracking-wider font-mono hidden sm:inline">
                   Size:
                 </span>
               </div>
 
-              <div className="flex items-center gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800">
+              <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
                 {THICKNESS_OPTIONS.map((opt) => {
                   const isSelected = lineWidth === opt.width;
                   return (
@@ -184,8 +188,8 @@ const Canvas = () => {
                       title={`${opt.label} (${opt.width}px)`}
                       className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                         isSelected
-                          ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
-                          : "text-slate-400 hover:text-white hover:bg-slate-800"
+                          ? "bg-blue-600 text-white shadow-sm"
+                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                       }`}
                     >
                       <span
@@ -201,15 +205,15 @@ const Canvas = () => {
         )}
 
         {/* Board Container */}
-        <div className="w-full h-[300px] sm:h-[330px] md:h-[360px] rounded-2xl p-1.5 bg-slate-950 border border-slate-800 shadow-inner relative overflow-hidden group">
+        <div className="w-full h-[300px] sm:h-[330px] md:h-[360px] rounded-2xl p-1.5 bg-slate-100 border border-slate-300 shadow-inner relative overflow-hidden group">
           {/* Status Overlay Tag */}
           <div className="absolute top-2.5 right-2.5 z-10 pointer-events-none flex items-center gap-2">
             {game?.is_started && !game?.is_ended && (
-              <span className="text-[10px] font-mono font-bold text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded-md flex items-center gap-1">
-                <Clock className="w-3 h-3 text-cyan-400" /> {timeLeft}s
+              <span className="text-[10px] font-mono font-bold text-blue-700 bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
+                <Clock className="w-3 h-3 text-blue-600" /> {timeLeft}s
               </span>
             )}
-            <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-900/90 px-2 py-0.5 rounded-md border border-slate-800 shadow">
+            <span className="text-[10px] font-mono font-bold text-slate-700 bg-white/90 px-2 py-0.5 rounded-md border border-slate-300 shadow-sm">
               {game?.is_ended
                 ? "MATCH ENDED"
                 : userPlaying
@@ -222,10 +226,10 @@ const Canvas = () => {
 
         {/* Word Choice Section - Removed once word is chosen/acknowledged */}
         {userPlaying && !isSent && !game?.is_ended && (
-          <div className="mt-4 pt-3 border-t border-white/10">
+          <div className="mt-4 pt-3 border-t border-slate-200">
             <div className="flex items-center gap-2 mb-2">
-              <Zap className="w-4 h-4 text-yellow-400" />
-              <p className="text-xs font-bold text-white uppercase tracking-wider">
+              <Zap className="w-4 h-4 text-amber-500" />
+              <p className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                 Select Your Secret Word
               </p>
             </div>
@@ -241,8 +245,8 @@ const Canvas = () => {
                     }}
                     className={`px-4 py-2 rounded-xl text-xs font-bold font-mono transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
                       isSelected
-                        ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white scale-105 shadow-md shadow-emerald-500/30 border border-emerald-300"
-                        : "bg-slate-900/90 text-slate-300 border border-slate-700/80 hover:border-cyan-400 hover:text-white"
+                        ? "bg-emerald-600 text-white scale-105 shadow-md shadow-emerald-500/20 border border-emerald-500"
+                        : "bg-white text-slate-700 border border-slate-300 hover:border-blue-500 hover:text-blue-600 shadow-sm"
                     }`}
                   >
                     {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
@@ -255,7 +259,7 @@ const Canvas = () => {
             <button
               disabled={!selectedWord}
               onClick={sendSelectedWord}
-              className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs flex items-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+              className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
             >
               <Send className="w-3.5 h-3.5" />
               <span>Submit Selected Word</span>

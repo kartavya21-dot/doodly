@@ -40,7 +40,6 @@ export default function Auth() {
         });
       } else {
         await register(formData);
-        // Auto-login after successful registration
         await login({
           username: formData.username,
           password: formData.password,
@@ -59,41 +58,46 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative p-4 overflow-hidden">
-      {/* Background Neon Glowing Orbs */}
-      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-pink-600/20 rounded-full blur-3xl pointer-events-none animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none animate-pulse" style={{ animationDelay: "1s" }} />
+      {/* Background Soft Orbs */}
+      <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-blue-400/10 rounded-full blur-3xl pointer-events-none animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-red-400/10 rounded-full blur-3xl pointer-events-none animate-pulse" style={{ animationDelay: "1s" }} />
 
       {/* Main Container */}
       <div className="w-full max-w-md relative z-10">
         {/* Brand Header */}
         <div className="text-center mb-8 flex flex-col items-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-pink-500 via-purple-500 to-cyan-400 p-0.5 shadow-lg shadow-pink-500/30 mb-3 animate-bounce" style={{ animationDuration: '3s' }}>
-            <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
-              <Palette className="w-8 h-8 text-cyan-400" />
-            </div>
+          <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 shadow-lg shadow-slate-200 flex items-center justify-center mb-3 animate-bounce" style={{ animationDuration: '3s' }}>
+            <Palette className="w-8 h-8 text-blue-600" />
           </div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-4xl font-extrabold tracking-wider neon-text-pink">
-              DOODLY
+          
+          {/* Google Colorized Title */}
+          <div className="flex items-center gap-1">
+            <h1 className="text-4xl font-extrabold tracking-wider font-mono">
+              <span className="text-blue-600">D</span>
+              <span className="text-red-500">o</span>
+              <span className="text-amber-500">o</span>
+              <span className="text-blue-600">d</span>
+              <span className="text-green-600">l</span>
+              <span className="text-red-500">y</span>
             </h1>
-            <Sparkles className="w-5 h-5 text-cyan-400 animate-spin" style={{ animationDuration: '6s' }} />
+            <Sparkles className="w-5 h-5 text-amber-500 animate-spin ml-1" style={{ animationDuration: '6s' }} />
           </div>
-          <p className="text-xs font-semibold tracking-widest text-cyan-400/80 uppercase mt-1">
+          <p className="text-xs font-bold tracking-widest text-slate-500 uppercase mt-1">
             Funky Multiplayer Doodling
           </p>
         </div>
 
         {/* Auth Card */}
-        <div className="neon-card rounded-3xl p-8 border border-white/10 relative overflow-hidden backdrop-blur-xl">
+        <div className="neon-card rounded-3xl p-8 border border-slate-200/80 bg-white/90 relative overflow-hidden backdrop-blur-xl shadow-xl shadow-slate-200/50">
           {/* Mode Indicator Bar */}
-          <div className="flex bg-slate-950/80 p-1.5 rounded-2xl border border-white/10 mb-6">
+          <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 mb-6">
             <button
               type="button"
               onClick={() => { setIsLoginMode(true); setError(null); }}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 ${
+              className={`flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer ${
                 isLoginMode
-                  ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-500/30"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               <LogIn className="w-4 h-4" />
@@ -103,10 +107,10 @@ export default function Auth() {
             <button
               type="button"
               onClick={() => { setIsLoginMode(false); setError(null); }}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 ${
+              className={`flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer ${
                 !isLoginMode
-                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-green-600 text-white shadow-md shadow-green-500/20"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               <UserPlus className="w-4 h-4" />
@@ -114,11 +118,11 @@ export default function Auth() {
             </button>
           </div>
 
-          <h2 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
-            <Zap className="w-5 h-5 text-yellow-400" />
-            <span>{isLoginMode ? "Welcome Back!" : "Join the Arena"}</span>
+          <h2 className="text-xl font-bold text-slate-900 mb-1 flex items-center gap-2">
+            <Zap className="w-5 h-5 text-amber-500" />
+            <span>{isLoginMode ? "Welcome Back" : "Join the Arena"}</span>
           </h2>
-          <p className="text-xs text-slate-400 mb-6">
+          <p className="text-xs text-slate-500 mb-6">
             {isLoginMode
               ? "Enter your credentials to step into the drawing lounge"
               : "Create your unique profile to start doodling right away"}
@@ -126,8 +130,8 @@ export default function Auth() {
 
           {/* Error Banner */}
           {error && (
-            <div className="bg-rose-500/10 border border-rose-500/40 text-rose-300 text-sm px-4 py-3 rounded-2xl mb-5 flex items-center gap-3 animate-shake">
-              <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+            <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-2xl mb-5 flex items-center gap-3 animate-shake">
+              <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
               <span>{error}</span>
             </div>
           )}
@@ -135,7 +139,7 @@ export default function Auth() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
-              <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 block">
+              <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5 block">
                 Username
               </label>
               <div className="relative">
@@ -148,13 +152,13 @@ export default function Auth() {
                   value={formData.username}
                   onChange={handleChange}
                   required
-                  className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 transition-all text-sm"
+                  className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm font-medium"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 block">
+              <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5 block">
                 Password
               </label>
               <div className="relative">
@@ -168,7 +172,7 @@ export default function Auth() {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 transition-all text-sm"
+                  className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm font-medium"
                 />
               </div>
             </div>
@@ -176,10 +180,10 @@ export default function Auth() {
             <button
               type="submit"
               disabled={loading}
-              className={`mt-3 py-3.5 rounded-2xl font-bold text-white flex items-center justify-center gap-2 transition-all duration-200 shadow-lg active:scale-98 disabled:opacity-60 cursor-pointer ${
+              className={`mt-3 py-3.5 rounded-2xl font-bold text-white flex items-center justify-center gap-2 transition-all duration-200 shadow-md active:scale-98 disabled:opacity-60 cursor-pointer ${
                 isLoginMode
-                  ? "bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 hover:shadow-pink-500/30 hover:scale-[1.01]"
-                  : "bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 hover:shadow-cyan-500/30 hover:scale-[1.01]"
+                  ? "bg-blue-600 hover:bg-blue-700 hover:shadow-blue-500/20"
+                  : "bg-green-600 hover:bg-green-700 hover:shadow-green-500/20"
               }`}
             >
               {loading ? (
@@ -197,11 +201,11 @@ export default function Auth() {
           </form>
 
           {/* Switch Mode Footer Link */}
-          <div className="mt-6 pt-4 border-t border-white/5 text-center">
+          <div className="mt-6 pt-4 border-t border-slate-200 text-center">
             <button
               type="button"
               onClick={() => { setIsLoginMode(!isLoginMode); setError(null); }}
-              className="text-xs text-slate-400 hover:text-cyan-400 transition-colors font-medium hover:underline"
+              className="text-xs text-slate-500 hover:text-blue-600 transition-colors font-medium cursor-pointer"
             >
               {isLoginMode
                 ? "Need a new player account? Register here"

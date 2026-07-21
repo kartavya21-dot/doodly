@@ -2,121 +2,86 @@
 
 @layer base {
   :root {
-    --color-cyber-bg: #09090e;
-    --color-neon-cyan: #00f3ff;
-    --color-neon-pink: #ff007f;
-    --color-neon-purple: #a855f7;
-    --color-neon-green: #22c55e;
-    --color-neon-yellow: #eab308;
+    --color-google-blue: #1a73e8;
+    --color-google-red: #ea4335;
+    --color-google-yellow: #fbbc04;
+    --color-google-green: #34a853;
   }
 
   body {
-    background-color: #09090e;
+    background-color: #f8fafc;
     background-image: 
-      radial-gradient(circle at 15% 15%, rgba(255, 0, 127, 0.12) 0%, transparent 40%),
-      radial-gradient(circle at 85% 85%, rgba(0, 243, 255, 0.12) 0%, transparent 40%),
-      radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.08) 0%, transparent 60%),
-      linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-    background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px;
-    color: #f3f4f6;
+      radial-gradient(circle at 10% 15%, rgba(26, 115, 232, 0.08) 0%, transparent 45%),
+      radial-gradient(circle at 90% 85%, rgba(52, 168, 83, 0.08) 0%, transparent 45%),
+      radial-gradient(circle at 50% 50%, rgba(234, 67, 53, 0.05) 0%, transparent 50%),
+      linear-gradient(to right, rgba(148, 163, 184, 0.18) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(148, 163, 184, 0.18) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+    color: #0f172a;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
   }
 }
 
-/* Custom Scrollbar */
+/* Custom Light Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0d0d18;
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27273a;
+  background: #cbd5e1;
   border-radius: 4px;
-  border: 1px solid rgba(0, 243, 255, 0.2);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #00f3ff;
-  box-shadow: 0 0 10px #00f3ff;
+  background: #94a3b8;
 }
 
-/* Neon Glow Utilities */
-.neon-glow-cyan {
-  box-shadow: 0 0 15px rgba(0, 243, 255, 0.4), inset 0 0 10px rgba(0, 243, 255, 0.1);
-}
-
-.neon-glow-pink {
-  box-shadow: 0 0 15px rgba(255, 0, 127, 0.4), inset 0 0 10px rgba(255, 0, 127, 0.1);
-}
-
-.neon-glow-purple {
-  box-shadow: 0 0 15px rgba(168, 85, 247, 0.4), inset 0 0 10px rgba(168, 85, 247, 0.1);
-}
-
-.neon-glow-green {
-  box-shadow: 0 0 15px rgba(34, 197, 94, 0.4), inset 0 0 10px rgba(34, 197, 94, 0.1);
-}
-
-.neon-text-cyan {
-  color: #00f3ff;
-  text-shadow: 0 0 8px rgba(0, 243, 255, 0.6), 0 0 20px rgba(0, 243, 255, 0.3);
-}
-
-.neon-text-pink {
-  color: #ff007f;
-  text-shadow: 0 0 8px rgba(255, 0, 127, 0.6), 0 0 20px rgba(255, 0, 127, 0.3);
-}
-
-.neon-text-purple {
-  color: #c084fc;
-  text-shadow: 0 0 8px rgba(168, 85, 247, 0.6), 0 0 20px rgba(168, 85, 247, 0.3);
-}
-
-/* Neon Glass Card */
+/* Google-style Card */
 .neon-card {
-  background: rgba(15, 15, 27, 0.75);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .neon-card:hover {
-  border-color: rgba(0, 243, 255, 0.4);
-  box-shadow: 0 0 20px rgba(0, 243, 255, 0.2), 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 25px -3px rgba(15, 23, 42, 0.1), 0 4px 10px -2px rgba(15, 23, 42, 0.06);
 }
 
-/* Pulse Glow Animation */
-@keyframes neon-pulse {
-  0%, 100% {
-    opacity: 1;
-    filter: drop-shadow(0 0 8px rgba(0, 243, 255, 0.8));
-  }
-  50% {
-    opacity: 0.7;
-    filter: drop-shadow(0 0 20px rgba(255, 0, 127, 0.9));
-  }
+/* Google Color Utilities */
+.google-text-blue {
+  color: #1a73e8;
 }
 
-.animate-neon-pulse {
-  animation: neon-pulse 3s infinite ease-in-out;
+.google-text-red {
+  color: #ea4335;
 }
 
-/* Modal Pop & Fade Keyframes */
+.google-text-green {
+  color: #34a853;
+}
+
+.google-text-yellow {
+  color: #d97706;
+}
+
+/* Animations */
 @keyframes pop-in {
   0% {
     opacity: 0;
-    transform: scale(0.85) translateY(10px);
+    transform: scale(0.9) translateY(8px);
   }
   70% {
-    transform: scale(1.03) translateY(-2px);
+    transform: scale(1.02) translateY(-2px);
   }
   100% {
     opacity: 1;
@@ -134,9 +99,9 @@
 }
 
 .animate-pop-in {
-  animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: pop-in 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 .animate-fade-in {
-  animation: fade-in 0.3s ease-out forwards;
+  animation: fade-in 0.25s ease-out forwards;
 }
