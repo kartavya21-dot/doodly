@@ -35,6 +35,8 @@ export function GameSocketProvider({ game, setGame, children }) {
 
   const [lastRoundResult, setLastRoundResult] = useState(null);
 
+  const [isWordChosen, setIsWordChosen] = useState(false);
+
   const canvasRef = useRef(null);
 
   const clearCanvas = useCallback(() => {
@@ -106,6 +108,7 @@ export function GameSocketProvider({ game, setGame, children }) {
       case "START": {
         clearCanvas();
         setLastRoundResult(null);
+        setIsWordChosen(false);
         setGame((prev) => ({
           ...prev,
           is_started: true,
@@ -121,6 +124,7 @@ export function GameSocketProvider({ game, setGame, children }) {
 
       case "CHOOSE_WORD": {
         setMessages((prev) => [...prev, data]);
+        setIsWordChosen(true);
         if (data.username === currentUser) {
           setIsSent(true);
         }
@@ -146,6 +150,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         clearCanvas();
         setSelectedWord(null);
         setIsSent(false);
+        setIsWordChosen(false);
         setMessages((prev) => [...prev, data]);
         if (data.score) setScores(data.score);
         setLastRoundResult(data);
@@ -160,6 +165,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         clearCanvas();
         setSelectedWord(null);
         setIsSent(false);
+        setIsWordChosen(false);
         setLastRoundResult(null);
         setMessages((prev) => [...prev, data]);
         setGame((prev) => ({
@@ -174,6 +180,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         clearCanvas();
         setSelectedWord(null);
         setIsSent(false);
+        setIsWordChosen(false);
         setLastRoundResult(null);
         if (data.score) setScores(data.score);
         setGame((prev) => ({
@@ -253,6 +260,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         scores,
         lastRoundResult,
         setLastRoundResult,
+        isWordChosen,
 
         registerCanvas,
         drawSegment,

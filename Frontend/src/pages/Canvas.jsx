@@ -122,7 +122,7 @@ const Canvas = () => {
             </div>
           </div>
 
-          {/* Neon Timer Indicator */}
+          {/* Neon Timer Indicator - Visible during all active rounds */}
           {game?.is_started && !game?.is_ended && (
             <div
               className={`min-w-[100px] px-3.5 py-1.5 rounded-xl flex items-center justify-center gap-2 border-2 text-sm font-extrabold font-mono transition-all duration-300 shadow-sm ${
