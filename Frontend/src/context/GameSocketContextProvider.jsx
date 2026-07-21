@@ -37,15 +37,21 @@ export function GameSocketProvider({ game, setGame, children }) {
 
   const canvasRef = useRef(null);
 
+  const clearCanvas = useCallback(() => {
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext("2d");
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    }
+  }, []);
+
   const registerCanvas = useCallback(
     (canvas) => {
       canvasRef.current = canvas?.current ?? null;
       if (canvasRef.current) {
-        const ctx = canvasRef.current.getContext("2d");
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        clearCanvas();
       }
     },
-    [],
+    [clearCanvas],
   );
 
   const drawSegment = (data) => {
@@ -98,6 +104,7 @@ export function GameSocketProvider({ game, setGame, children }) {
       }
 
       case "START": {
+        clearCanvas();
         setLastRoundResult(null);
         setGame((prev) => ({
           ...prev,
@@ -125,12 +132,18 @@ export function GameSocketProvider({ game, setGame, children }) {
         break;
       }
 
+      case "CLEAR": {
+        clearCanvas();
+        break;
+      }
+
       case "GUESS": {
         setMessages((prev) => [...prev, data]);
         break;
       }
 
       case "ROUND_END": {
+        clearCanvas();
         setSelectedWord(null);
         setIsSent(false);
         setMessages((prev) => [...prev, data]);
@@ -144,6 +157,7 @@ export function GameSocketProvider({ game, setGame, children }) {
       }
 
       case "NEXT_ROUND": {
+        clearCanvas();
         setSelectedWord(null);
         setIsSent(false);
         setLastRoundResult(null);
@@ -157,6 +171,7 @@ export function GameSocketProvider({ game, setGame, children }) {
       }
 
       case "GAME_END": {
+        clearCanvas();
         setSelectedWord(null);
         setIsSent(false);
         setLastRoundResult(null);
@@ -241,6 +256,7 @@ export function GameSocketProvider({ game, setGame, children }) {
 
         registerCanvas,
         drawSegment,
+        clearCanvas,
 
         sendMessage,
       }}

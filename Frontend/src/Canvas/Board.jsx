@@ -1,10 +1,9 @@
 import { useEffect, useRef } from "react";
 import { useGameSocket } from "../context/GameSocketContextProvider";
-import { useUser } from "../context/UserContextProvider";
 
 export default function Board({ color = "#0f172a", lineWidth = 4 }) {
   const canvasRef = useRef(null);
-  const { registerCanvas, sendMessage, drawSegment, userPlaying } = useGameSocket();
+  const { registerCanvas, sendMessage, drawSegment, userPlaying, isSent, game } = useGameSocket();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -22,6 +21,9 @@ export default function Board({ color = "#0f172a", lineWidth = 4 }) {
   const isDrawing = useRef(false);
   const prevPoint = useRef(null);
 
+  // User is allowed to draw ONLY when they are active drawer, have selected/submitted a word (isSent = true), and match is active
+  const canDraw = Boolean(userPlaying && isSent && !game?.is_ended);
+
   const getCoords = (e) => {
     const rect = canvasRef.current.getBoundingClientRect();
 
@@ -32,6 +34,7 @@ export default function Board({ color = "#0f172a", lineWidth = 4 }) {
   };
 
   const handleMouseDown = (e) => {
+    if (!canDraw) return;
     isDrawing.current = true;
     prevPoint.current = getCoords(e);
   };
@@ -39,7 +42,7 @@ export default function Board({ color = "#0f172a", lineWidth = 4 }) {
   const lastFrame = useRef(0);
 
   const handleMouseMove = (e) => {
-    if (!isDrawing.current) return;
+    if (!isDrawing.current || !canDraw) return;
 
     const now = performance.now();
 
@@ -74,12 +77,12 @@ export default function Board({ color = "#0f172a", lineWidth = 4 }) {
   return (
     <canvas
       ref={canvasRef}
-      onMouseDown={userPlaying ? handleMouseDown : () => {}}
-      onMouseMove={userPlaying ? handleMouseMove : () => {}}
-      onMouseUp={userPlaying ? handleMouseUp : () => {}}
-      onMouseLeave={userPlaying ? handleMouseUp : () => {}}
+      onMouseDown={canDraw ? handleMouseDown : () => {}}
+      onMouseMove={canDraw ? handleMouseMove : () => {}}
+      onMouseUp={canDraw ? handleMouseUp : () => {}}
+      onMouseLeave={canDraw ? handleMouseUp : () => {}}
       className={`w-full h-full block bg-white rounded-xl ${
-        userPlaying ? "cursor-crosshair" : "cursor-not-allowed"
+        canDraw ? "cursor-crosshair" : "cursor-not-allowed"
       }`}
     />
   );

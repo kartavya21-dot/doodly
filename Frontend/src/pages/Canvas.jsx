@@ -12,6 +12,7 @@ import {
   Zap,
   Eraser,
   Sliders,
+  Trash2,
 } from "lucide-react";
 
 const COLOR_OPTIONS = [
@@ -44,6 +45,7 @@ const Canvas = () => {
     timeLeft,
     sendMessage,
     userPlaying,
+    clearCanvas,
   } = useGameSocket();
 
   const [color, setColor] = useState("#0f172a");
@@ -67,6 +69,13 @@ const Canvas = () => {
       username: username,
     };
     sendMessage(payload);
+  };
+
+  const handleClearCanvas = () => {
+    clearCanvas();
+    sendMessage({
+      type: "CLEAR",
+    });
   };
 
   return (
@@ -113,7 +122,7 @@ const Canvas = () => {
             </div>
           </div>
 
-          {/* Neon Timer Indicator - VISIBLE TO EVERYONE DURING GAME */}
+          {/* Neon Timer Indicator */}
           {game?.is_started && !game?.is_ended && (
             <div
               className={`min-w-[100px] px-3.5 py-1.5 rounded-xl flex items-center justify-center gap-2 border-2 text-sm font-extrabold font-mono transition-all duration-300 shadow-sm ${
@@ -130,9 +139,9 @@ const Canvas = () => {
           )}
         </div>
 
-        {/* Paintbrush Toolkit Bar (Visible for active drawer) */}
-        {userPlaying && !game?.is_ended && (
-          <div className="mb-3 p-2.5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-inner">
+        {/* Paintbrush Toolkit Bar (Visible ONLY when active drawer has selected the word) */}
+        {userPlaying && isSent && !game?.is_ended && (
+          <div className="mb-3 p-2.5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-inner animate-fade-in">
             {/* Colors Palette */}
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 text-slate-600 mr-1">
@@ -169,8 +178,8 @@ const Canvas = () => {
               </div>
             </div>
 
-            {/* Thickness / Size Picker */}
-            <div className="flex items-center gap-2">
+            {/* Thickness / Size Picker & Clear Button */}
+            <div className="flex items-center gap-3">
               <div className="flex items-center gap-1 text-slate-600 mr-1">
                 <Sliders className="w-3.5 h-3.5 text-purple-600" />
                 <span className="text-[11px] font-bold uppercase tracking-wider font-mono hidden sm:inline">
@@ -178,7 +187,7 @@ const Canvas = () => {
                 </span>
               </div>
 
-              <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+              <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200 shadow-sm mr-2">
                 {THICKNESS_OPTIONS.map((opt) => {
                   const isSelected = lineWidth === opt.width;
                   return (
@@ -200,6 +209,16 @@ const Canvas = () => {
                   );
                 })}
               </div>
+
+              {/* Clear Canvas Action */}
+              <button
+                onClick={handleClearCanvas}
+                className="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 hover:text-red-700 font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                title="Wipe canvas clean"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Clear Board</span>
+              </button>
             </div>
           </div>
         )}
@@ -217,7 +236,9 @@ const Canvas = () => {
               {game?.is_ended
                 ? "MATCH ENDED"
                 : userPlaying
-                ? "YOUR TURN TO DRAW"
+                ? isSent
+                  ? "YOUR TURN TO DRAW"
+                  : "CHOOSE A WORD BELOW"
                 : "SPECTATING ARTIST"}
             </span>
           </div>
@@ -230,7 +251,7 @@ const Canvas = () => {
             <div className="flex items-center gap-2 mb-2">
               <Zap className="w-4 h-4 text-amber-500" />
               <p className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                Select Your Secret Word
+                Select Your Secret Word to Unlock Drawing
               </p>
             </div>
 

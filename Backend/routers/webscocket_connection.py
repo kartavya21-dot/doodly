@@ -322,7 +322,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                     )
 
                     task = asyncio.create_task(
-                        turn_timer(game_id, game.current_player, True)
+                        turn_timer(game_id, game.current_player, False)
                     )
 
                     game_timers[game_id] = {
