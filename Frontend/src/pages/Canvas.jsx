@@ -129,7 +129,7 @@ const Canvas = () => {
                   : "border-blue-400 text-blue-700 bg-blue-50"
               }`}
             >
-              <Clock className="w-3 h-3 text-blue-600" />
+              <Clock className="w-3.5 h-3.5 text-blue-600" />
               <span>{timeLeft === 0 ? "Time's Up" : `${timeLeft}s`}</span>
             </div>
           )}
@@ -219,8 +219,8 @@ const Canvas = () => {
           </div>
         )}
 
-        {/* Board Container - Responsive heights & fills large screens */}
-        <div className="w-full h-[180px] sm:h-[260px] md:h-[320px] lg:h-[calc(100vh-220px)] lg:min-h-[480px] lg:max-h-[700px] rounded-2xl p-1.5 bg-slate-100 border border-slate-300 shadow-inner relative overflow-hidden group">
+        {/* Board Container - Strict 16:10 aspect ratio for geometric scaling */}
+        <div className="w-full aspect-[16/10] rounded-2xl p-1.5 bg-slate-100 border border-slate-300 shadow-inner relative overflow-hidden group">
           {/* Status Overlay Tag */}
           <div className="absolute top-2.5 right-2.5 z-10 pointer-events-none flex items-center gap-2">
             {game?.is_started && !game?.is_ended && (

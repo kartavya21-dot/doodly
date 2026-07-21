@@ -132,7 +132,17 @@ export function GameSocketProvider({ game, setGame, children }) {
       }
 
       case "DRAW": {
-        drawSegment(data);
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const deNormalizedData = {
+            ...data,
+            x0: data.x0 * canvas.width,
+            y0: data.y0 * canvas.height,
+            x1: data.x1 * canvas.width,
+            y1: data.y1 * canvas.height,
+          };
+          drawSegment(deNormalizedData);
+        }
         break;
       }
 

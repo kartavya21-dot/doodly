@@ -59,8 +59,10 @@ export default function Board({ color = "#0f172a", lineWidth = 4 }) {
     lastFrame.current = now;
 
     const curr = getCoords(e);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    const drawData = {
+    const localDrawData = {
       type: "DRAW",
       x0: prevPoint.current.x,
       y0: prevPoint.current.y,
@@ -70,9 +72,21 @@ export default function Board({ color = "#0f172a", lineWidth = 4 }) {
       lineWidth: lineWidth,
     };
 
-    // Draw locally first
-    drawSegment(drawData);
-    sendMessage(drawData);
+    const broadcastDrawData = {
+      type: "DRAW",
+      // Normalize values between 0.0 and 1.0 relative to canvas size
+      x0: prevPoint.current.x / canvas.width,
+      y0: prevPoint.current.y / canvas.height,
+      x1: curr.x / canvas.width,
+      y1: curr.y / canvas.height,
+      color: color,
+      lineWidth: lineWidth,
+    };
+
+    // Draw locally first using absolute coordinates
+    drawSegment(localDrawData);
+    // Broadcast normalized coordinates
+    sendMessage(broadcastDrawData);
 
     prevPoint.current = curr;
   };
