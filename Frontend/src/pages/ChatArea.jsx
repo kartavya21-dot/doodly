@@ -32,9 +32,9 @@ const ChatArea = ({ room }) => {
   };
 
   return (
-    <div className="w-full h-full min-h-[440px] max-h-[500px] neon-card rounded-3xl p-4 border border-slate-200 bg-white/95 shadow-lg backdrop-blur-xl flex flex-col justify-between gap-3">
+    <div className="w-full h-[calc(100vh-320px)] lg:h-[calc(100vh-140px)] lg:min-h-[540px] lg:max-h-[760px] neon-card rounded-3xl p-4 border border-slate-200 bg-white/95 shadow-lg backdrop-blur-xl flex flex-col justify-between gap-3">
       {/* Header */}
-      <div className="flex items-center justify-between pb-2.5 border-b border-slate-200">
+      <div className="flex items-center justify-between pb-2 border-b border-slate-200">
         <div className="flex items-center gap-2">
           <MessageSquare className="w-4 h-4 text-blue-600" />
           <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-mono">
@@ -42,7 +42,7 @@ const ChatArea = ({ room }) => {
           </h3>
         </div>
         <span className="text-[10px] font-mono font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
-          CHAT ACTIVE
+          ACTIVE
         </span>
       </div>
 
@@ -51,7 +51,7 @@ const ChatArea = ({ room }) => {
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-slate-400 italic text-center p-4">
             <Sparkles className="w-6 h-6 text-slate-300 mb-2 animate-pulse" />
-            <span>Type your guess or message below! Messages appear here in real-time.</span>
+            <span>Type your guess or message below!</span>
           </div>
         ) : (
           messages.map((msg, idx) => {
@@ -107,7 +107,7 @@ const ChatArea = ({ room }) => {
       {room?.admin_username === username && (
         <button
           onClick={nextRound}
-          className="w-full py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"
+          className="w-full py-1 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"
         >
           <FastForward className="w-3.5 h-3.5" />
           <span>Skip to Next Round</span>

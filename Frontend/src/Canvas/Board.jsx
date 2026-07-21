@@ -8,20 +8,28 @@ export default function Board({ color = "#0f172a", lineWidth = 4 }) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const parent = canvas.parentElement;
 
-    canvas.width = parent.clientWidth;
-    canvas.height = parent.clientHeight;
+    const resizeCanvas = () => {
+      const parent = canvas.parentElement;
+      if (parent) {
+        canvas.width = parent.clientWidth;
+        canvas.height = parent.clientHeight;
+      }
+    };
 
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
     registerCanvas(canvasRef);
 
-    return () => registerCanvas(null);
+    return () => {
+      window.removeEventListener("resize", resizeCanvas);
+      registerCanvas(null);
+    };
   }, [registerCanvas]);
 
   const isDrawing = useRef(false);
   const prevPoint = useRef(null);
 
-  // User is allowed to draw ONLY when they are active drawer, have selected/submitted a word (isSent = true), and match is active
   const canDraw = Boolean(userPlaying && isSent && !game?.is_ended);
 
   const getCoords = (e) => {
