@@ -7,6 +7,14 @@ import {
   useCallback,
 } from "react";
 import { useUser } from "./UserContextProvider";
+import {
+  playJoinSound,
+  playStartSound,
+  playChooseWordSound,
+  playTickSound,
+  playRoundWonSound,
+  playVictorySound,
+} from "../utils/audio";
 
 const GameSocketContext = createContext(null);
 
@@ -94,6 +102,7 @@ export function GameSocketProvider({ game, setGame, children }) {
 
     switch (data.type) {
       case "JOIN": {
+        playJoinSound();
         setLobbyPlayers((prev) =>
           prev.map((player) => {
             if (player.username === data.username) {
@@ -109,6 +118,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         clearCanvas();
         setLastRoundResult(null);
         setIsWordChosen(false);
+        playStartSound();
         setGame((prev) => ({
           ...prev,
           is_started: true,
@@ -119,12 +129,16 @@ export function GameSocketProvider({ game, setGame, children }) {
 
       case "TIMER": {
         setTimeLeft(data.timeLeft);
+        if (data.timeLeft <= 10 && data.timeLeft > 0) {
+          playTickSound();
+        }
         break;
       }
 
       case "CHOOSE_WORD": {
         setMessages((prev) => [...prev, data]);
         setIsWordChosen(true);
+        playChooseWordSound();
         if (data.username === currentUser) {
           setIsSent(true);
         }
@@ -164,6 +178,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         setMessages((prev) => [...prev, data]);
         if (data.score) setScores(data.score);
         setLastRoundResult(data);
+        playRoundWonSound();
         setGame((prev) => ({
           ...prev,
           current_player: null,
@@ -178,6 +193,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         setIsWordChosen(false);
         setLastRoundResult(null);
         setMessages((prev) => [...prev, data]);
+        playStartSound();
         setGame((prev) => ({
           ...prev,
           current_player: data.username,
@@ -193,6 +209,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         setIsWordChosen(false);
         setLastRoundResult(null);
         if (data.score) setScores(data.score);
+        playVictorySound();
         setGame((prev) => ({
           ...prev,
           current_player: null,

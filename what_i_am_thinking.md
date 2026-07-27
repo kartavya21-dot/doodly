@@ -44,4 +44,7 @@
 
 ### 21 July
 * Changed UI to be like Google
+* Canvas aspect is same regardless of screen size
 
+## 27 July
+* Adding sound effects to game
