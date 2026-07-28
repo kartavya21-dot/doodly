@@ -11,7 +11,6 @@ export default function App() {
     <UserContextProvider>
       <Router>
         <Routes>
-          <Route path="/test" element={<Test />} />
           <Route path="/" element={<Auth />} />
           <Route path="/room" element={<Room />} />
           <Route path="/room/:roomId/game" element={<Game />} />
