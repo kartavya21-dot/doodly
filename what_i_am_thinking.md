@@ -48,3 +48,6 @@
 
 ## 27 July
 * Adding sound effects to game
+
+## 29 July
+* Added past match & active match tab

@@ -14,6 +14,7 @@ import {
   Layers,
   Sparkles,
   Zap,
+  CheckCircle2,
 } from "lucide-react";
 
 export default function Game() {
@@ -23,6 +24,7 @@ export default function Game() {
   const [users, setUsers] = useState([]);
   const [games, setGames] = useState([]);
   const [gameTotalRound, setGameTotalRound] = useState(1);
+  const [activeTab, setActiveTab] = useState("active"); // "active" or "past"
 
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -56,6 +58,7 @@ export default function Game() {
       });
       setGameTotalRound(1);
       fetchRoomData();
+      setActiveTab("active"); // Automatically switch to active tab when launching a game
     } catch (error) {
       console.error("Error creating game:", error);
     } finally {
@@ -75,6 +78,10 @@ export default function Game() {
       setDeletingId(null);
     }
   };
+
+  const activeGames = games.filter((g) => !g.is_ended);
+  const pastGames = games.filter((g) => g.is_ended);
+  const displayedGames = activeTab === "active" ? activeGames : pastGames;
 
   return (
     <div className="min-h-screen p-4 md:p-8 max-w-5xl mx-auto flex flex-col gap-6">
@@ -149,30 +156,78 @@ export default function Game() {
         </form>
       </div>
 
-      {/* Games List */}
-      <div className="max-w-3xl mx-auto w-full">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+      {/* Games List Container */}
+      <div className="max-w-3xl mx-auto w-full flex flex-col gap-4">
+        {/* Section Header with Tabs */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-3">
+          <div className="flex items-center gap-2">
             <Layers className="w-5 h-5 text-blue-600" />
-            <span>Past & Active Matches</span>
-          </h3>
-          <span className="text-xs font-mono text-slate-500 font-semibold">
-            Total Matches: {games?.length || 0}
-          </span>
+            <h3 className="text-lg font-extrabold text-slate-900">Room Matches</h3>
+          </div>
+
+          {/* Tab Selector Buttons */}
+          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 self-start sm:self-auto">
+            <button
+              onClick={() => setActiveTab("active")}
+              className={`px-4 py-1.5 rounded-lg font-bold text-xs flex items-center gap-2 transition-all cursor-pointer ${
+                activeTab === "active"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Flame className="w-3.5 h-3.5" />
+              <span>Active</span>
+              <span
+                className={`px-1.5 py-0.2 rounded font-mono text-[10px] ${
+                  activeTab === "active"
+                    ? "bg-blue-500 text-white"
+                    : "bg-slate-200 text-slate-600"
+                }`}
+              >
+                {activeGames.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("past")}
+              className={`px-4 py-1.5 rounded-lg font-bold text-xs flex items-center gap-2 transition-all cursor-pointer ${
+                activeTab === "past"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Past</span>
+              <span
+                className={`px-1.5 py-0.2 rounded font-mono text-[10px] ${
+                  activeTab === "past"
+                    ? "bg-blue-500 text-white"
+                    : "bg-slate-200 text-slate-600"
+                }`}
+              >
+                {pastGames.length}
+              </span>
+            </button>
+          </div>
         </div>
 
+        {/* Loading Indicator */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-12 neon-card rounded-3xl border border-slate-200 bg-white">
+          <div className="flex items-center justify-center py-12 neon-card rounded-3xl border border-slate-200 bg-white shadow-sm">
             <Loader2 className="w-7 h-7 text-blue-600 animate-spin mr-3" />
             <span className="text-sm text-slate-500 font-mono">Fetching match records...</span>
           </div>
-        ) : games?.length === 0 ? (
-          <div className="neon-card rounded-3xl p-8 text-center text-slate-500 text-sm border border-slate-200 bg-white">
-            No matches created yet in this room. Launch one above!
+        ) : displayedGames.length === 0 ? (
+          /* Empty tab states */
+          <div className="neon-card rounded-3xl p-8 text-center text-slate-500 text-sm border border-slate-200 bg-white shadow-sm">
+            {activeTab === "active"
+              ? "No active/unfinished matches in this room. Launch one above!"
+              : "No past matches completed yet in this room."}
           </div>
         ) : (
+          /* Matches List */
           <div className="flex flex-col gap-4">
-            {games?.map((g) => (
+            {displayedGames.map((g) => (
               <div
                 key={g.id}
                 onClick={() => navigate(`${g.id}`)}
