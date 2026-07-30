@@ -51,3 +51,6 @@
 
 ## 29 July
 * Added past match & active match tab
+
+## 30 July
+* Added soft fonts
