@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getRooms, getMyRooms, createRoom, joinRoom } from "../services/room";
 import { logout } from "../services/auth";
+import { playSound } from "../utils/soundManager";
 import {
   Palette,
   Sparkles,
@@ -64,8 +65,9 @@ export default function Room() {
       setNewRoomName("");
       setNewRoomPassword("");
 
-      navigate(`room/${room.id}/game`);
+      navigate(`/room/${room.id}/game`);
     } catch (error) {
+      playSound("error");
       console.error("Error creating room:", error);
     } finally {
       setIsCreating(false);
@@ -77,8 +79,9 @@ export default function Room() {
     setIsJoining(true);
     try {
       await joinRoom({ room_id: +joinRoomId });
-      navigate(`room/game/${joinRoomId}`);
+      navigate(`/room/${joinRoomId}/game`);
     } catch (error) {
+      playSound("error");
       console.error("Error joining room:", error);
     } finally {
       setIsJoining(false);

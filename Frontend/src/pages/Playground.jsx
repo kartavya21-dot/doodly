@@ -8,6 +8,7 @@ import { GameSocketProvider } from "../context/GameSocketContextProvider";
 import ChatArea from "./ChatArea";
 import GameScoreboard from "../component/GameScoreboard";
 import RoundEndModal from "../component/RoundEndModal";
+import { loopSound, stopSound } from "../utils/soundManager";
 import {
   ArrowLeft,
   Flame,
@@ -51,6 +52,14 @@ const Playground = () => {
     };
     init();
   }, [gameId, roomId]);
+
+  useEffect(() => {
+    // Loop background music in play arena
+    loopSound("bgMusic");
+    return () => {
+      stopSound("bgMusic");
+    };
+  }, []);
 
   if (isLoading || !gameId || !game) {
     return (

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login, register } from "../services/auth";
+import { playSound } from "../utils/soundManager";
 import {
   User,
   Lock,
@@ -47,6 +48,7 @@ export default function Auth() {
       }
       navigate("/room");
     } catch (err) {
+      playSound("error");
       setError(
         err.response?.data?.detail ||
           "Authentication failed. Please try again.",

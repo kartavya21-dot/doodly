@@ -7,14 +7,8 @@ import {
   useCallback,
 } from "react";
 import { useUser } from "./UserContextProvider";
-import {
-  playJoinSound,
-  playStartSound,
-  playChooseWordSound,
-  playTickSound,
-  playRoundWonSound,
-  playVictorySound,
-} from "../utils/audio";
+import { playTickSound } from "../utils/audio";
+import { playSound } from "../utils/soundManager";
 
 const GameSocketContext = createContext(null);
 
@@ -102,7 +96,7 @@ export function GameSocketProvider({ game, setGame, children }) {
 
     switch (data.type) {
       case "JOIN": {
-        playJoinSound();
+        playSound("doorOpen");
         setLobbyPlayers((prev) =>
           prev.map((player) => {
             if (player.username === data.username) {
@@ -118,7 +112,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         clearCanvas();
         setLastRoundResult(null);
         setIsWordChosen(false);
-        playStartSound();
+        playSound("gunSound");
         setGame((prev) => ({
           ...prev,
           is_started: true,
@@ -138,7 +132,7 @@ export function GameSocketProvider({ game, setGame, children }) {
       case "CHOOSE_WORD": {
         setMessages((prev) => [...prev, data]);
         setIsWordChosen(true);
-        playChooseWordSound();
+        playSound("gunSound");
         if (data.username === currentUser) {
           setIsSent(true);
         }
@@ -178,7 +172,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         setMessages((prev) => [...prev, data]);
         if (data.score) setScores(data.score);
         setLastRoundResult(data);
-        playRoundWonSound();
+        playSound("tada");
         setGame((prev) => ({
           ...prev,
           current_player: null,
@@ -193,7 +187,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         setIsWordChosen(false);
         setLastRoundResult(null);
         setMessages((prev) => [...prev, data]);
-        playStartSound();
+        playSound("gunSound");
         setGame((prev) => ({
           ...prev,
           current_player: data.username,
@@ -209,7 +203,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         setIsWordChosen(false);
         setLastRoundResult(null);
         if (data.score) setScores(data.score);
-        playVictorySound();
+        playSound("successWin");
         setGame((prev) => ({
           ...prev,
           current_player: null,
@@ -219,6 +213,7 @@ export function GameSocketProvider({ game, setGame, children }) {
       }
 
       case "LOST_CONNECTION": {
+        playSound("doorClosing");
         setLobbyPlayers((prev) =>
           prev.map((player) => {
             if (player.username === data.username) {

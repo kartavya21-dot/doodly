@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getRoomUsers } from "../services/room";
 import { getRoomGames, createGame, deleteGame } from "../services/game";
+import { playSound } from "../utils/soundManager";
 import {
   ArrowLeft,
   Gamepad2,
@@ -58,8 +59,10 @@ export default function Game() {
       });
       setGameTotalRound(1);
       fetchRoomData();
+      playSound("paperCrumble");
       setActiveTab("active"); // Automatically switch to active tab when launching a game
     } catch (error) {
+      playSound("error");
       console.error("Error creating game:", error);
     } finally {
       setIsCreating(false);
@@ -73,6 +76,7 @@ export default function Game() {
       await deleteGame(id);
       fetchRoomData();
     } catch (error) {
+      playSound("error");
       console.error("Error deleting Game:", error);
     } finally {
       setDeletingId(null);
