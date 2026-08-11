@@ -117,3 +117,33 @@
 .animate-fade-in {
   animation: fade-in 0.25s ease-out forwards;
 }
+
+/* ── Page-turn transition ───────────────────────────────────────────── */
+/*
+  Simulates a physical page-flip: the old page slides + fades to the right
+  while the new page enters from a slight tilt on the left.
+  perspective + rotateY give the 3-D book feel without being disorienting.
+*/
+@keyframes page-enter {
+  0% {
+    opacity: 0;
+    transform: perspective(1200px) rotateY(-6deg) translateX(-24px) scale(0.98);
+    filter: blur(2px);
+  }
+  60% {
+    opacity: 1;
+    transform: perspective(1200px) rotateY(1deg) translateX(2px) scale(1.005);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1200px) rotateY(0deg) translateX(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.page-enter {
+  animation: page-enter 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  transform-origin: left center;
+  will-change: transform, opacity;
+}
