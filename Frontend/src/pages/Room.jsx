@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { getRooms, getMyRooms, createRoom, joinRoom } from "../services/room";
 import { logout } from "../services/auth";
+import { AlertCircle, X } from "lucide-react";
 import { playSound } from "../utils/soundManager";
 import VolumeControls from "../component/VolumeControls";
 import {
@@ -32,6 +33,23 @@ export default function Room() {
   const [isLoadingRooms, setIsLoadingRooms] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+
+  const [createError, setCreateError] = useState(null);
+  const [joinError, setJoinError]     = useState(null);
+  const createErrTimer = useRef(null);
+  const joinErrTimer   = useRef(null);
+
+  const showCreateError = (msg) => {
+    setCreateError(msg);
+    clearTimeout(createErrTimer.current);
+    createErrTimer.current = setTimeout(() => setCreateError(null), 4000);
+  };
+
+  const showJoinError = (msg) => {
+    setJoinError(msg);
+    clearTimeout(joinErrTimer.current);
+    joinErrTimer.current = setTimeout(() => setJoinError(null), 4000);
+  };
 
   const fetchRooms = async () => {
     setIsLoadingRooms(true);
@@ -69,6 +87,8 @@ export default function Room() {
       navigate(`/room/${room.id}/game`);
     } catch (error) {
       playSound("error");
+      const msg = error?.response?.data?.detail || "Failed to create room. Please try again.";
+      showCreateError(msg);
       console.error("Error creating room:", error);
     } finally {
       setIsCreating(false);
@@ -83,6 +103,8 @@ export default function Room() {
       navigate(`/room/${joinRoomId}/game`);
     } catch (error) {
       playSound("error");
+      const msg = error?.response?.data?.detail || "Could not join room. Check the Room ID and try again.";
+      showJoinError(msg);
       console.error("Error joining room:", error);
     } finally {
       setIsJoining(false);
@@ -216,6 +238,20 @@ export default function Room() {
                 </>
               )}
             </button>
+
+            {/* Auto-dismissing Create Room error banner */}
+            {createError && (
+              <div className="mt-3 flex items-start gap-2.5 px-4 py-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm animate-fade-in">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span className="flex-1 font-medium">{createError}</span>
+                <button
+                  onClick={() => setCreateError(null)}
+                  className="shrink-0 text-red-400 hover:text-red-600 cursor-pointer transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
           </form>
         </div>
 
@@ -269,6 +305,20 @@ export default function Room() {
                 </>
               )}
             </button>
+
+            {/* Auto-dismissing Join Room error banner */}
+            {joinError && (
+              <div className="mt-3 flex items-start gap-2.5 px-4 py-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm animate-fade-in">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span className="flex-1 font-medium">{joinError}</span>
+                <button
+                  onClick={() => setJoinError(null)}
+                  className="shrink-0 text-red-400 hover:text-red-600 cursor-pointer transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
           </form>
         </div>
       </div>
