@@ -66,7 +66,7 @@ def seed_themes(session: Session):
                 session.add(word_obj)
             session.commit()
 
-@router.get("", response_model=List[ThemeResponse])
+@router.get("", response_model=List[ThemeWithWords])
 def get_themes(
     session: SessionDep,
     room_id: Optional[int] = None,
