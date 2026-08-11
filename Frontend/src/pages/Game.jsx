@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getRoomUsers } from "../services/room";
 import { getRoomGames, createGame, deleteGame } from "../services/game";
 import { playSound } from "../utils/soundManager";
+import VolumeControls from "../component/VolumeControls";
 import {
   ArrowLeft,
   Gamepad2,
@@ -91,13 +92,17 @@ export default function Game() {
     <div className="min-h-screen p-4 md:p-8 max-w-5xl mx-auto flex flex-col gap-6">
       {/* Top Header Bar */}
       <div className="flex flex-wrap items-center justify-between gap-4 neon-card rounded-3xl p-5 border border-slate-200 bg-white/90 shadow-lg shadow-slate-200/50 backdrop-blur-xl">
-        <button
-          onClick={() => navigate("/room")}
-          className="px-4 py-2 rounded-2xl bg-white border border-slate-300 hover:border-blue-500 text-slate-700 hover:text-blue-600 font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-sm"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Lobby</span>
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate("/room")}
+            className="px-4 py-2 rounded-2xl bg-white border border-slate-300 hover:border-blue-500 text-slate-700 hover:text-blue-600 font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Lobby</span>
+          </button>
+          
+          <VolumeControls />
+        </div>
 
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600">

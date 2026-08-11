@@ -8,7 +8,7 @@ import { GameSocketProvider } from "../context/GameSocketContextProvider";
 import ChatArea from "./ChatArea";
 import GameScoreboard from "../component/GameScoreboard";
 import RoundEndModal from "../component/RoundEndModal";
-import { loopSound, stopSound } from "../utils/soundManager";
+import VolumeControls from "../component/VolumeControls";
 import {
   ArrowLeft,
   Flame,
@@ -52,14 +52,6 @@ const Playground = () => {
     };
     init();
   }, [gameId, roomId]);
-
-  useEffect(() => {
-    // Loop background music in play arena
-    loopSound("bgMusic");
-    return () => {
-      stopSound("bgMusic");
-    };
-  }, []);
 
   if (isLoading || !gameId || !game) {
     return (
@@ -145,14 +137,19 @@ const Playground = () => {
               )}
             </div>
 
-            {/* Players Summary */}
-            <div className="hidden md:flex items-center gap-1.5 text-[11px] text-slate-500 font-medium shrink-0">
-              <Users className="w-3.5 h-3.5 text-slate-400" />
-              <span className="truncate max-w-[120px] lg:max-w-[150px]">
-                {Array.isArray(game.players)
-                  ? game.players.join(", ")
-                  : String(game.players || "None")}
-              </span>
+            {/* Volume Control Bar & Players Summary */}
+            <div className="flex items-center gap-2 md:gap-3 shrink-0">
+              <VolumeControls />
+
+              {/* Players Summary */}
+              <div className="hidden md:flex items-center gap-1.5 text-[11px] text-slate-500 font-medium shrink-0">
+                <Users className="w-3.5 h-3.5 text-slate-400" />
+                <span className="truncate max-w-[120px] lg:max-w-[150px]">
+                  {Array.isArray(game.players)
+                    ? game.players.join(", ")
+                    : String(game.players || "None")}
+                </span>
+              </div>
             </div>
           </header>
         )}

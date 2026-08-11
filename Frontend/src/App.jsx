@@ -5,7 +5,7 @@ import Room from "./pages/Room";
 import Game from "./pages/Game";
 import Playground from "./pages/Playground";
 import { UserContextProvider } from "./context/UserContextProvider";
-import { playSound } from "./utils/soundManager";
+import { playSound, loopSound, stopSound } from "./utils/soundManager";
 
 function NavigationSoundListener() {
   const location = useLocation();
@@ -13,6 +13,13 @@ function NavigationSoundListener() {
   useEffect(() => {
     // Play page flip sound on page transitions
     playSound("pageFlip");
+
+    // Loop background music continuously after user logs in (paths containing "/room")
+    if (location.pathname !== "/" && location.pathname !== "") {
+      loopSound("bgMusic");
+    } else {
+      stopSound("bgMusic");
+    }
   }, [location.pathname]);
 
   return null;

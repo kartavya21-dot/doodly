@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getRooms, getMyRooms, createRoom, joinRoom } from "../services/room";
 import { logout } from "../services/auth";
 import { playSound } from "../utils/soundManager";
+import VolumeControls from "../component/VolumeControls";
 import {
   Palette,
   Sparkles,
@@ -113,13 +114,16 @@ export default function Room() {
           </div>
         </div>
 
-        <button
-          onClick={logout}
-          className="px-4 py-2.5 rounded-2xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-bold text-sm flex items-center gap-2 transition-all duration-200 active:scale-95 shadow-sm cursor-pointer"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Logout</span>
-        </button>
+        <div className="flex items-center gap-4">
+          <VolumeControls />
+          <button
+            onClick={logout}
+            className="px-4 py-2.5 rounded-2xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-bold text-sm flex items-center gap-2 transition-all duration-200 active:scale-95 shadow-sm cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Logout</span>
+          </button>
+        </div>
       </header>
 
       {/* Forms Section Grid */}

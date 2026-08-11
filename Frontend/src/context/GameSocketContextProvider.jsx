@@ -224,6 +224,19 @@ export function GameSocketProvider({ game, setGame, children }) {
         );
         break;
       }
+      
+      case "LEFT_GAME": {
+        playSound("doorClosing");
+        setLobbyPlayers((prev) =>
+          prev.map((player) => {
+            if (player.username === data.username) {
+              return { ...player, is_active: false };
+            }
+            return player;
+          }),
+        );
+        break;
+      }
     }
   };
 

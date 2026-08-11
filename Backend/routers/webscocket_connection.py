@@ -490,7 +490,6 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                     session.delete(game_score)
 
             session.commit()
-            session.refresh(game_user)
 
         if game_is_started:
             msg = {
@@ -504,6 +503,8 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                 "username": username,
                 "type": "LEFT_GAME",
             }
+
+        print(msg)
 
         await broadcast_message(connections[game_id], websocket, msg, to_user=False)
 
