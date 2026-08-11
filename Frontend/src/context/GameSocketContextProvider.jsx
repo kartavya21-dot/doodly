@@ -7,7 +7,6 @@ import {
   useCallback,
 } from "react";
 import { useUser } from "./UserContextProvider";
-import { playTickSound } from "../utils/audio";
 import { playSound } from "../utils/soundManager";
 
 const GameSocketContext = createContext(null);
@@ -38,6 +37,9 @@ export function GameSocketProvider({ game, setGame, children }) {
   const [lastRoundResult, setLastRoundResult] = useState(null);
 
   const [isWordChosen, setIsWordChosen] = useState(false);
+
+  // Tracks which player is currently picking a word (cleared once word is chosen)
+  const [choosingPlayer, setChoosingPlayer] = useState(null);
 
   const canvasRef = useRef(null);
 
@@ -112,6 +114,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         clearCanvas();
         setLastRoundResult(null);
         setIsWordChosen(false);
+        setChoosingPlayer(data.username);
         playSound("gunSound");
         setGame((prev) => ({
           ...prev,
@@ -124,7 +127,7 @@ export function GameSocketProvider({ game, setGame, children }) {
       case "TIMER": {
         setTimeLeft(data.timeLeft);
         if (data.timeLeft <= 10 && data.timeLeft > 0) {
-          playTickSound();
+          playSound("paperCrumble");
         }
         break;
       }
@@ -132,6 +135,7 @@ export function GameSocketProvider({ game, setGame, children }) {
       case "CHOOSE_WORD": {
         setMessages((prev) => [...prev, data]);
         setIsWordChosen(true);
+        setChoosingPlayer(null);
         playSound("gunSound");
         if (data.username === currentUser) {
           setIsSent(true);
@@ -186,6 +190,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         setIsSent(false);
         setIsWordChosen(false);
         setLastRoundResult(null);
+        setChoosingPlayer(data.username);
         setMessages((prev) => [...prev, data]);
         playSound("gunSound");
         setGame((prev) => ({
@@ -296,6 +301,7 @@ export function GameSocketProvider({ game, setGame, children }) {
         lastRoundResult,
         setLastRoundResult,
         isWordChosen,
+        choosingPlayer,
 
         registerCanvas,
         drawSegment,

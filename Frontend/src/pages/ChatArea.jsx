@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useGameSocket } from "../context/GameSocketContextProvider";
 import { useUser } from "../context/UserContextProvider";
-import { MessageSquare, Send, FastForward, Sparkles, User } from "lucide-react";
+import { MessageSquare, Send, FastForward, Sparkles, User, Pencil } from "lucide-react";
 
 const ChatArea = ({ room }) => {
-  const { messages, sendMessage } = useGameSocket();
+  const { messages, sendMessage, choosingPlayer, isWordChosen } = useGameSocket();
   const [chat, setChat] = useState("");
   const { username } = useUser();
   const chatBottomRef = useRef(null);
@@ -45,6 +45,27 @@ const ChatArea = ({ room }) => {
           ACTIVE
         </span>
       </div>
+
+      {/* "Choosing word" status banner — visible between round start and word pick */}
+      {choosingPlayer && !isWordChosen && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-semibold animate-fade-in shrink-0">
+          <Pencil className="w-3.5 h-3.5 text-amber-500 shrink-0 animate-pulse" />
+          <span>
+            <strong className="text-amber-700">{choosingPlayer}</strong>
+            {" "} is choosing a word
+          </span>
+          {/* animated dots */}
+          <span className="flex gap-0.5 ml-auto">
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                className="w-1 h-1 rounded-full bg-amber-400 animate-bounce"
+                style={{ animationDelay: `${i * 0.15}s` }}
+              />
+            ))}
+          </span>
+        </div>
+      )}
 
       {/* Messages Stream */}
       <div className="flex-1 overflow-y-auto pr-1 space-y-2.5 font-sans text-xs scroll-smooth custom-scrollbar">
