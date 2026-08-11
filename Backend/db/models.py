@@ -51,6 +51,34 @@ class Room(SQLModel, table=True):
     admin_username: str = Field(foreign_key="users.username")
     users: List["User"] = Relationship(back_populates="rooms", link_model=RoomUser)
     games: List["Game"] = Relationship(back_populates="room")
+    themes: List["Theme"] = Relationship(back_populates="room")
+
+
+class Theme(SQLModel, table=True):
+    __tablename__ = "themes"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str
+    is_preset: bool = Field(default=False)
+    room_id: Optional[int] = Field(default=None, foreign_key="rooms.id")
+
+    room: Optional["Room"] = Relationship(back_populates="themes")
+    words: List["ThemeWord"] = Relationship(
+        back_populates="theme",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
+    games: List["Game"] = Relationship(back_populates="theme")
+
+
+class ThemeWord(SQLModel, table=True):
+    __tablename__ = "theme_words"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    theme_id: int = Field(foreign_key="themes.id")
+    word: str
+
+    theme: "Theme" = Relationship(back_populates="words")
+
 
 class Game(SQLModel, table=True):
     __tablename__ = "games"
@@ -70,7 +98,13 @@ class Game(SQLModel, table=True):
     current_player: Optional[str] = Field(default=None, foreign_key="users.username")
     current_word: Optional[str] = Field(default=None)
 
+    # Customisation fields
+    theme_id: Optional[int] = Field(default=None, foreign_key="themes.id")
+    choosing_time: int = Field(default=30)
+    guessing_time: int = Field(default=60)
+
     room: Room = Relationship(back_populates="games")
+    theme: Optional["Theme"] = Relationship(back_populates="games")
 
     players: List["User"] = Relationship(back_populates="games", link_model=GameUser)
     scores: List["UserGameScore"] = Relationship(

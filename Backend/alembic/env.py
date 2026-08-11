@@ -9,7 +9,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from db.models import SQLModel  # important
-from db.models import Room, RoomUser, User, Game, GameUser, UserGameScore   # ensures models are registered
+from db.models import Room, RoomUser, User, Game, GameUser, UserGameScore, Theme, ThemeWord  # ensures models are registered
 
 
 # this is the Alembic Config object, which provides

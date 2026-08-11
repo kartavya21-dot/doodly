@@ -6,6 +6,9 @@ from datetime import datetime
 class GameBase(BaseModel):
     room_id: int
     total_round: int
+    theme_id: int | None = None
+    choosing_time: int = 30
+    guessing_time: int = 60
 
 class GameCreate(GameBase):
     pass

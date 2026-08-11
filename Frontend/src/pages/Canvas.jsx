@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useUser } from "../context/UserContextProvider";
 import { useGameSocket } from "../context/GameSocketContextProvider";
 import Board from "../Canvas/Board";
+import { getThemeById } from "../services/theme";
 import {
   Palette,
   Check,
@@ -35,6 +36,10 @@ const THICKNESS_OPTIONS = [
   { label: "Bold", width: 18, dotSize: "w-5 h-5" },
 ];
 
+const shuffleArray = (arr) => {
+  return [...arr].sort(() => 0.5 - Math.random());
+};
+
 const Canvas = () => {
   const { username } = useUser();
   const {
@@ -51,15 +56,32 @@ const Canvas = () => {
   const [color, setColor] = useState("#0f172a");
   const [lineWidth, setLineWidth] = useState(5);
 
-  const [words] = useState([
-    "apple",
-    "banana",
-    "cherry",
-    "date",
-    "elderberry",
-    "fig",
-    "grape",
-  ]);
+  const [currentRoundWords, setCurrentRoundWords] = useState([]);
+
+  // Fetch words dynamically from backend when the game's theme_id is available and it's our turn to choose
+  useEffect(() => {
+    if (!game?.theme_id || !userPlaying || isSent) return;
+
+    const loadThemeWords = async () => {
+      try {
+        const theme = await getThemeById(game.theme_id);
+        if (theme && theme.words && theme.words.length > 0) {
+          const rawWords = theme.words.map((w) => w.word);
+          // Pick 4 random words
+          const selectedSubset = shuffleArray(rawWords).slice(0, 4);
+          setCurrentRoundWords(selectedSubset);
+        } else {
+          // Fallback if no words are loaded
+          setCurrentRoundWords(["doodle", "sketch", "paint", "draw"]);
+        }
+      } catch (error) {
+        console.error("Failed to load theme words from backend:", error);
+        setCurrentRoundWords(["doodle", "sketch", "paint", "draw"]);
+      }
+    };
+
+    loadThemeWords();
+  }, [game?.theme_id, game?.current_round, userPlaying, isSent]);
 
   const sendSelectedWord = () => {
     if (!selectedWord) return;
@@ -252,7 +274,7 @@ const Canvas = () => {
             </div>
 
             <div className="flex flex-wrap gap-1.5 mb-2">
-              {words.map((word) => {
+              {currentRoundWords.map((word) => {
                 const isSelected = selectedWord === word;
                 return (
                   <button

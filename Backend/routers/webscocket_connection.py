@@ -288,7 +288,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
 
                     game_timers[game_id] = {
                         "task": task,
-                        "end_time": time.monotonic() + 30,
+                        "end_time": time.monotonic() + game.choosing_time,
                     }
 
             # ---------------- CHOOSE-WORD ----------------
@@ -327,7 +327,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
 
                     game_timers[game_id] = {
                         "task": task,
-                        "end_time": time.monotonic() + 20,
+                        "end_time": time.monotonic() + game.guessing_time,
                     }
 
             # ---------------- DRAW ----------------
@@ -349,7 +349,10 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                         await websocket.send_json(msg)
                     else:
                         # --------------- WIN ----------------
-                        if game.current_word == msg["message"]:
+                        user_answer = msg["message"].strip().casefold()
+                        correct_answer = game.current_word.strip().casefold()
+
+                        if correct_answer == user_answer:
 
                             drawing_player: GameUser = game.current_player
                             guessing_player: str = username
@@ -357,7 +360,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                             remaining_time = (
                                 game_timers[game_id]["end_time"] - time.monotonic()
                             )
-                            score: int = int((remaining_time / game_duration) * 100)
+                            score: int = int((remaining_time / game.guessing_time) * 100)
 
                             user_score_list: List[UserGameScore] = game.scores
 
@@ -461,7 +464,7 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
 
                         game_timers[game_id] = {
                             "task": task,
-                            "end_time": time.monotonic() + 30,
+                            "end_time": time.monotonic() + game.choosing_time,
                         }
 
             # ---------------- DEFAULT ----------------

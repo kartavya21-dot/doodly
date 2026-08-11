@@ -2,6 +2,13 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getRoomUsers } from "../services/room";
 import { getRoomGames, createGame, deleteGame } from "../services/game";
+import {
+  getThemes,
+  createCustomTheme,
+  addWordToTheme,
+  deleteWordFromTheme,
+  deleteCustomTheme,
+} from "../services/theme";
 import { playSound } from "../utils/soundManager";
 import VolumeControls from "../component/VolumeControls";
 import {
@@ -17,6 +24,11 @@ import {
   Sparkles,
   Zap,
   CheckCircle2,
+  BookOpen,
+  PlusCircle,
+  X,
+  Settings,
+  AlertCircle,
 } from "lucide-react";
 
 export default function Game() {
@@ -25,9 +37,25 @@ export default function Game() {
 
   const [users, setUsers] = useState([]);
   const [games, setGames] = useState([]);
-  const [gameTotalRound, setGameTotalRound] = useState(1);
-  const [activeTab, setActiveTab] = useState("active"); // "active" or "past"
+  
+  // Customisable parameters
+  const [gameTotalRound, setGameTotalRound] = useState(3);
+  const [choosingTime, setChoosingTime] = useState(30);
+  const [guessingTime, setGuessingTime] = useState(60);
+  
+  // Themes
+  const [themes, setThemes] = useState([]);
+  const [selectedThemeId, setSelectedThemeId] = useState(null);
+  
+  // Custom theme creation/management
+  const [showThemeCreator, setShowThemeCreator] = useState(false);
+  const [newThemeName, setNewThemeName] = useState("");
+  const [editingTheme, setEditingTheme] = useState(null); // The custom Theme object being edited
+  const [newWord, setNewWord] = useState("");
+  const [isThemeCreating, setIsThemeCreating] = useState(false);
+  const [isWordAdding, setIsWordAdding] = useState(false);
 
+  const [activeTab, setActiveTab] = useState("active"); // "active" or "past"
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
@@ -46,22 +74,57 @@ export default function Game() {
     }
   };
 
+  const fetchThemesData = async () => {
+    try {
+      const allThemes = await getThemes(roomId);
+      setThemes(allThemes || []);
+      // Auto-select Animals theme by default, or the first preset
+      const defaultTheme = allThemes.find((t) => t.is_preset && t.name === "Animals") || allThemes[0];
+      if (defaultTheme && !selectedThemeId) {
+        setSelectedThemeId(defaultTheme.id);
+      }
+    } catch (error) {
+      console.error("Failed to load themes:", error);
+    }
+  };
+
   useEffect(() => {
     fetchRoomData();
+    fetchThemesData();
   }, [roomId]);
 
   const handleCreateGame = async (e) => {
     e.preventDefault();
+    if (!selectedThemeId) {
+      playSound("error");
+      alert("Please select a theme before launching the match!");
+      return;
+    }
+
+    // Verify custom theme has words if selected
+    const activeTheme = themes.find(t => t.id === selectedThemeId);
+    if (activeTheme && !activeTheme.is_preset) {
+      // Check words in local themes list (which gets refreshed)
+      const wordsCount = activeTheme.words?.length || 0;
+      if (wordsCount < 4) {
+        playSound("error");
+        alert("Custom theme must have at least 4 words to start the game!");
+        return;
+      }
+    }
+
     setIsCreating(true);
     try {
       await createGame(roomId, {
-        total_round: gameTotalRound,
-        room_id: roomId,
+        total_round: Number(gameTotalRound),
+        room_id: Number(roomId),
+        theme_id: selectedThemeId,
+        choosing_time: Number(choosingTime),
+        guessing_time: Number(guessingTime),
       });
-      setGameTotalRound(1);
       fetchRoomData();
       playSound("paperCrumble");
-      setActiveTab("active"); // Automatically switch to active tab when launching a game
+      setActiveTab("active");
     } catch (error) {
       playSound("error");
       console.error("Error creating game:", error);
@@ -82,6 +145,101 @@ export default function Game() {
     } finally {
       setDeletingId(null);
     }
+  };
+
+  // Custom Theme Handlers
+  const handleCreateCustomTheme = async () => {
+    if (!newThemeName.trim()) return;
+    setIsThemeCreating(true);
+    try {
+      const created = await createCustomTheme(roomId, { name: newThemeName.trim() });
+      setThemes((prev) => [...prev, { ...created, words: [] }]);
+      setSelectedThemeId(created.id);
+      setEditingTheme({ ...created, words: [] });
+      setNewThemeName("");
+      playSound("click");
+    } catch (error) {
+      playSound("error");
+      console.error("Failed to create theme:", error);
+    } finally {
+      setIsThemeCreating(false);
+    }
+  };
+
+  const handleAddWord = async () => {
+    if (!newWord.trim() || !editingTheme) return;
+    setIsWordAdding(true);
+    try {
+      const addedWordObj = await addWordToTheme(editingTheme.id, newWord.trim());
+      
+      // Update editingTheme words list
+      const updatedWords = [...(editingTheme.words || []), addedWordObj];
+      const updatedTheme = { ...editingTheme, words: updatedWords };
+      setEditingTheme(updatedTheme);
+      
+      // Update themes state list
+      setThemes((prev) =>
+        prev.map((t) => (t.id === editingTheme.id ? updatedTheme : t))
+      );
+      
+      setNewWord("");
+      playSound("click");
+    } catch (error) {
+      playSound("error");
+      console.error("Failed to add word:", error);
+    } finally {
+      setIsWordAdding(false);
+    }
+  };
+
+  const handleDeleteWord = async (wordId) => {
+    if (!editingTheme) return;
+    try {
+      await deleteWordFromTheme(editingTheme.id, wordId);
+      
+      const updatedWords = (editingTheme.words || []).filter((w) => w.id !== wordId);
+      const updatedTheme = { ...editingTheme, words: updatedWords };
+      setEditingTheme(updatedTheme);
+      
+      setThemes((prev) =>
+        prev.map((t) => (t.id === editingTheme.id ? updatedTheme : t))
+      );
+      playSound("click");
+    } catch (error) {
+      playSound("error");
+      console.error("Failed to delete word:", error);
+    }
+  };
+
+  const handleDeleteTheme = async (themeId, e) => {
+    e.stopPropagation();
+    if (!confirm("Are you sure you want to delete this custom theme?")) return;
+    try {
+      await deleteCustomTheme(themeId);
+      setThemes((prev) => prev.filter((t) => t.id !== themeId));
+      if (selectedThemeId === themeId) {
+        setSelectedThemeId(themes.find(t => t.is_preset)?.id || null);
+      }
+      if (editingTheme?.id === themeId) {
+        setEditingTheme(null);
+      }
+      playSound("click");
+    } catch (error) {
+      playSound("error");
+      console.error("Failed to delete custom theme:", error);
+    }
+  };
+
+  const getThemeEmoji = (name) => {
+    const emojis = {
+      "Indian Movies": "🎬",
+      "Marvel Movies": "🦸",
+      "Superheroes": "⚡",
+      "Animals": "🐘",
+      "Historical Figures": "🏛️",
+      "Food": "🍕",
+    };
+    return emojis[name] || "✏️";
   };
 
   const activeGames = games.filter((g) => !g.is_ended);
@@ -119,46 +277,248 @@ export default function Game() {
         </div>
       </div>
 
-      {/* Start New Game Card */}
-      <div className="neon-card rounded-3xl p-6 border border-slate-200 bg-white max-w-xl mx-auto w-full shadow-md">
-        <div className="flex items-center gap-3 mb-4">
+      {/* Start New Game Configurator Card */}
+      <div className="neon-card rounded-3xl p-6 border border-slate-200 bg-white w-full shadow-md max-w-3xl mx-auto">
+        <div className="flex items-center gap-3 mb-6">
           <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
-            <Plus className="w-5 h-5" />
+            <Settings className="w-5 h-5" />
           </div>
           <div>
             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <span>Start New Match</span>
+              <span>Match Settings & Customisation</span>
               <Sparkles className="w-4 h-4 text-emerald-600" />
             </h3>
-            <p className="text-xs text-slate-500">Configure round limit for the next match</p>
+            <p className="text-xs text-slate-500">Host sets game limits, round time & choice pool theme</p>
           </div>
         </div>
 
-        <form onSubmit={handleCreateGame} className="flex gap-3">
-          <div className="relative flex-1">
-            <input
-              placeholder="Total Rounds"
-              value={gameTotalRound}
-              type="number"
-              min="1"
-              max="20"
-              onChange={(e) => setGameTotalRound(e.target.value)}
-              required
-              className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all text-sm font-mono font-semibold"
-            />
+        <form onSubmit={handleCreateGame} className="space-y-6">
+          {/* Numerical Config Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Total Rounds */}
+            <div>
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide block mb-1.5 font-mono">
+                Total Rounds
+              </label>
+              <input
+                value={gameTotalRound}
+                type="number"
+                min="1"
+                max="20"
+                onChange={(e) => setGameTotalRound(e.target.value)}
+                required
+                className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-300 text-slate-950 font-mono font-bold text-sm focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+              />
+            </div>
+
+            {/* Choosing Time */}
+            <div>
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide block mb-1.5 font-mono">
+                Word Selection (Secs)
+              </label>
+              <input
+                value={choosingTime}
+                type="number"
+                min="10"
+                max="120"
+                onChange={(e) => setChoosingTime(e.target.value)}
+                required
+                className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-300 text-slate-950 font-mono font-bold text-sm focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+              />
+            </div>
+
+            {/* Guessing Time */}
+            <div>
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide block mb-1.5 font-mono">
+                Drawing & Guess (Secs)
+              </label>
+              <input
+                value={guessingTime}
+                type="number"
+                min="20"
+                max="180"
+                onChange={(e) => setGuessingTime(e.target.value)}
+                required
+                className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-300 text-slate-950 font-mono font-bold text-sm focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+              />
+            </div>
           </div>
 
+          {/* Theme Selection Pill Grid */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide block font-mono">
+                Select Word Pool Theme
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowThemeCreator(!showThemeCreator);
+                  setEditingTheme(null);
+                }}
+                className="text-xs font-extrabold text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span>Custom Theme Creator</span>
+              </button>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {themes.map((theme) => {
+                const isSelected = selectedThemeId === theme.id;
+                return (
+                  <div
+                    key={theme.id}
+                    onClick={() => {
+                      setSelectedThemeId(theme.id);
+                      if (!theme.is_preset) {
+                        setEditingTheme(theme);
+                        setShowThemeCreator(true);
+                      } else {
+                        setEditingTheme(null);
+                      }
+                    }}
+                    className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 border select-none group shadow-sm ${
+                      isSelected
+                        ? "bg-emerald-600 text-white border-emerald-500 scale-[1.02] shadow-emerald-200"
+                        : "bg-white text-slate-700 border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <span>{getThemeEmoji(theme.name)}</span>
+                    <span>{theme.name}</span>
+                    
+                    {!theme.is_preset && (
+                      <>
+                        <span className="text-[10px] font-mono opacity-80 px-1.5 py-0.2 rounded bg-black/10">
+                          {theme.words?.length || 0}
+                        </span>
+                        
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeleteTheme(theme.id, e)}
+                          className="text-red-400 hover:text-red-600 ml-1 hover:scale-115 transition-transform"
+                          title="Delete Custom Theme"
+                        >
+                          <X className="w-3 h-3 stroke-[3]" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Custom Theme builder drawer panel */}
+          {showThemeCreator && (
+            <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-200/60 space-y-4 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-blue-900 uppercase tracking-wide flex items-center gap-1.5 font-mono">
+                  <BookOpen className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Custom Word Lists</span>
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => setShowThemeCreator(false)}
+                  className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {!editingTheme ? (
+                /* Step 1: Set Name */
+                <div className="flex gap-2 max-w-md">
+                  <input
+                    placeholder="Theme Name (e.g. Anime characters)"
+                    value={newThemeName}
+                    onChange={(e) => setNewThemeName(e.target.value)}
+                    className="flex-1 px-4 py-2 rounded-xl bg-white border border-slate-300 text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCreateCustomTheme}
+                    disabled={isThemeCreating || !newThemeName.trim()}
+                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  >
+                    {isThemeCreating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Save Theme"}
+                  </button>
+                </div>
+              ) : (
+                /* Step 2: Manage words */
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-slate-600">Editing Wordlist:</span>
+                    <strong className="text-xs font-extrabold text-blue-950 font-mono">
+                      {editingTheme.name}
+                    </strong>
+                  </div>
+
+                  {/* Add word text input */}
+                  <div className="flex gap-2 max-w-sm">
+                    <input
+                      placeholder="Add custom word..."
+                      value={newWord}
+                      onChange={(e) => setNewWord(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddWord();
+                        }
+                      }}
+                      className="flex-1 px-4 py-2 rounded-xl bg-white border border-slate-300 text-xs font-medium text-slate-900 focus:outline-none focus:border-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddWord}
+                      disabled={isWordAdding || !newWord.trim()}
+                      className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all disabled:opacity-50 flex items-center gap-1 cursor-pointer"
+                    >
+                      {isWordAdding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Add"}
+                    </button>
+                  </div>
+
+                  {/* Word List Chips */}
+                  <div className="flex flex-wrap gap-1.5 pt-2 max-h-40 overflow-y-auto custom-scrollbar">
+                    {editingTheme.words && editingTheme.words.length > 0 ? (
+                      editingTheme.words.map((wObj) => (
+                        <span
+                          key={wObj.id}
+                          className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-800 text-[11px] font-semibold flex items-center gap-1 font-mono hover:bg-red-50 hover:border-red-200 hover:text-red-600 cursor-pointer group shadow-sm transition-colors"
+                          onClick={() => handleDeleteWord(wObj.id)}
+                          title="Click to delete word"
+                        >
+                          <span>{wObj.word}</span>
+                          <X className="w-2.5 h-2.5 text-slate-400 group-hover:text-red-500" />
+                        </span>
+                      ))
+                    ) : (
+                      <p className="text-[11px] text-slate-500 italic flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 text-slate-400" />
+                        <span>No words added yet. Add at least 4 words to enable this theme.</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Launch Button */}
           <button
             type="submit"
             disabled={isCreating}
-            className="px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer disabled:opacity-50"
+            className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md active:scale-98 cursor-pointer disabled:opacity-50"
           >
             {isCreating ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Launching Match Lobby...</span>
+              </>
             ) : (
               <>
                 <Zap className="w-4 h-4" />
-                <span>Launch Game</span>
+                <span>Launch Match</span>
               </>
             )}
           </button>
@@ -279,7 +639,17 @@ export default function Game() {
                     </span>
                     <span>•</span>
                     <span>
-                      Created: {new Date(g.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      Choose Secs: <strong className="text-slate-800">{g.choosing_time || 30}s</strong>
+                    </span>
+                    <span>•</span>
+                    <span>
+                      Guess Secs: <strong className="text-slate-800">{g.guessing_time || 60}s</strong>
+                    </span>
+                    <span>•</span>
+                    <span>
+                      Theme: <strong className="text-slate-800 font-mono">
+                        {themes.find((t) => t.id === g.theme_id)?.name || "Default"}
+                      </strong>
                     </span>
                   </div>
                 </div>
