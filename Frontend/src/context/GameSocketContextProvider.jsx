@@ -13,6 +13,19 @@ const GameSocketContext = createContext(null);
 
 export const useGameSocket = () => useContext(GameSocketContext);
 
+const COLOR_PALETTE = [
+  "#0f172a", // 0: Black
+  "#ef4444", // 1: Red
+  "#ec4899", // 2: Pink
+  "#a855f7", // 3: Purple
+  "#3b82f6", // 4: Blue
+  "#06b6d4", // 5: Cyan
+  "#22c55e", // 6: Green
+  "#eab308", // 7: Yellow
+  "#f97316", // 8: Orange
+  "#ffffff"  // 9: Eraser
+];
+
 export function GameSocketProvider({ game, setGame, children }) {
   const socketRef = useRef(null);
   const currentUser = useUser().username;
@@ -78,7 +91,11 @@ export function GameSocketProvider({ game, setGame, children }) {
 
   const sendMessage = (data) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      socketRef.current.send(JSON.stringify(data));
+      if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
+        socketRef.current.send(data);
+      } else {
+        socketRef.current.send(JSON.stringify(data));
+      }
     }
   };
 
@@ -252,13 +269,49 @@ export function GameSocketProvider({ game, setGame, children }) {
       const ws = new WebSocket(
         `ws://localhost:8000/ws?token=${token}&game_id=${game.id}`,
       );
+      ws.binaryType = "arraybuffer";
       ws.onopen = () => setIsConnected(true);
       ws.onclose = () => setIsConnected(false);
       ws.onerror = () => setIsConnected(false);
 
       ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        handleIncomingMessage(data);
+        if (event.data instanceof ArrayBuffer) {
+          // Decode binary DRAW data
+          const view = new DataView(event.data);
+          const type = view.getUint8(0);
+
+          if (type === 1) { // 1 = DRAW
+            const x0_norm = view.getUint16(1) / 65535;
+            const y0_norm = view.getUint16(3) / 65535;
+            const x1_norm = view.getUint16(5) / 65535;
+            const y1_norm = view.getUint16(7) / 65535;
+            const colorIndex = view.getUint8(9);
+            const lineWidth = view.getUint8(10);
+
+            const color = COLOR_PALETTE[colorIndex] || "#0f172a";
+
+            const canvas = canvasRef.current;
+            if (canvas) {
+              const deNormalizedData = {
+                x0: x0_norm * canvas.width,
+                y0: y0_norm * canvas.height,
+                x1: x1_norm * canvas.width,
+                y1: y1_norm * canvas.height,
+                color,
+                lineWidth,
+              };
+              drawSegment(deNormalizedData);
+            }
+          }
+        } else {
+          // JSON text frame
+          try {
+            const data = JSON.parse(event.data);
+            handleIncomingMessage(data);
+          } catch (e) {
+            console.error("Failed to parse websocket message:", e);
+          }
+        }
       };
 
       socketRef.current = ws;

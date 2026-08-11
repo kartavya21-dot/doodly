@@ -4,6 +4,7 @@ from db.session import Session, engine
 from db.models import Game, Room, User, GameUser, UserGameScore
 from services.auth_services import decode_token
 from sqlmodel import select, delete
+import json
 
 """
     {
@@ -39,7 +40,10 @@ async def broadcast_message(
             continue
 
         try:
-            await conn.send_json(msg)
+            if isinstance(msg, bytes):
+                await conn.send_bytes(msg)
+            else:
+                await conn.send_json(msg)
         except (RuntimeError, WebSocketDisconnect):
             dead_connections.append(conn)
 
@@ -203,7 +207,16 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
 
     try:
         while True:
-            msg = await websocket.receive_json()
+            data = await websocket.receive()
+            if "bytes" in data:
+                # Binary frame (DRAW data). Broadcast to other users (to_user=False)
+                await broadcast_message(connections[game_id], websocket, data["bytes"], to_user=False)
+                continue
+
+            if "text" not in data:
+                continue
+
+            msg = json.loads(data["text"])
             # ---------------- JOIN ----------------
             if msg["type"] == "JOIN":
                 with Session(engine) as session:

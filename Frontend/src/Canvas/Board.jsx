@@ -1,6 +1,19 @@
 import { useEffect, useRef } from "react";
 import { useGameSocket } from "../context/GameSocketContextProvider";
 
+const COLOR_PALETTE = [
+  "#0f172a", // 0: Black
+  "#ef4444", // 1: Red
+  "#ec4899", // 2: Pink
+  "#a855f7", // 3: Purple
+  "#3b82f6", // 4: Blue
+  "#06b6d4", // 5: Cyan
+  "#22c55e", // 6: Green
+  "#eab308", // 7: Yellow
+  "#f97316", // 8: Orange
+  "#ffffff"  // 9: Eraser
+];
+
 export default function Board({ color = "#0f172a", lineWidth = 4 }) {
   const canvasRef = useRef(null);
   const { registerCanvas, sendMessage, drawSegment, userPlaying, isSent, game } = useGameSocket();
@@ -72,21 +85,36 @@ export default function Board({ color = "#0f172a", lineWidth = 4 }) {
       lineWidth: lineWidth,
     };
 
-    const broadcastDrawData = {
-      type: "DRAW",
-      // Normalize values between 0.0 and 1.0 relative to canvas size
-      x0: prevPoint.current.x / canvas.width,
-      y0: prevPoint.current.y / canvas.height,
-      x1: curr.x / canvas.width,
-      y1: curr.y / canvas.height,
-      color: color,
-      lineWidth: lineWidth,
-    };
+    const colorIndex = COLOR_PALETTE.indexOf(color);
+    const validColorIndex = colorIndex >= 0 ? colorIndex : 0;
+
+    const x0_norm = prevPoint.current.x / canvas.width;
+    const y0_norm = prevPoint.current.y / canvas.height;
+    const x1_norm = curr.x / canvas.width;
+    const y1_norm = curr.y / canvas.height;
+
+    const buffer = new ArrayBuffer(11);
+    const view = new DataView(buffer);
+
+    // Byte 0: Type = 1 (DRAW)
+    view.setUint8(0, 1);
+    // Bytes 1-2: x0 (mapped to 0-65535)
+    view.setUint16(1, Math.round(x0_norm * 65535));
+    // Bytes 3-4: y0
+    view.setUint16(3, Math.round(y0_norm * 65535));
+    // Bytes 5-6: x1
+    view.setUint16(5, Math.round(x1_norm * 65535));
+    // Bytes 7-8: y1
+    view.setUint16(7, Math.round(y1_norm * 65535));
+    // Byte 9: Color Index
+    view.setUint8(9, validColorIndex);
+    // Byte 10: Line Width
+    view.setUint8(10, lineWidth);
 
     // Draw locally first using absolute coordinates
     drawSegment(localDrawData);
-    // Broadcast normalized coordinates
-    sendMessage(broadcastDrawData);
+    // Broadcast binary drawing coordinates
+    sendMessage(buffer);
 
     prevPoint.current = curr;
   };
