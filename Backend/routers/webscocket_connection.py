@@ -222,13 +222,13 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                 with Session(engine) as session:
                     game: Game = session.get(Game, game_id)
                     game_user: GameUser = session.get(GameUser, (username, game_id))
-                    game.scores.append(
-                        UserGameScore(user_username=username, game_id=game_id)
-                    )
 
                     if game_user:
                         game_user.is_active = True
                     else:
+                        game.scores.append(
+                            UserGameScore(user_username=username, game_id=game_id)
+                        )
                         game_user: GameUser = GameUser(
                             user_username=username,
                             game_id=game_id,
@@ -520,7 +520,9 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                 "type": "LEFT_GAME",
             }
 
+        print("************")
         print(msg)
+        print("************")
 
         await broadcast_message(connections[game_id], websocket, msg, to_user=False)
 

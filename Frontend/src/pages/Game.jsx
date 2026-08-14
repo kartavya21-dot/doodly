@@ -249,11 +249,11 @@ export default function Game() {
   return (
     <div className="min-h-screen p-4 md:p-8 max-w-5xl mx-auto flex flex-col gap-6">
       {/* Top Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 neon-card rounded-3xl p-5 border border-slate-200 bg-white/90 shadow-lg shadow-slate-200/50 backdrop-blur-xl">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 neon-card rounded-3xl p-4 md:p-5 border border-slate-200 bg-white/90 shadow-lg shadow-slate-200/50 backdrop-blur-xl">
+        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 w-full sm:w-auto">
           <button
             onClick={() => navigate("/room")}
-            className="px-4 py-2 rounded-2xl bg-white border border-slate-300 hover:border-blue-500 text-slate-700 hover:text-blue-600 font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+            className="px-4 py-2 rounded-2xl bg-white border border-slate-300 hover:border-blue-500 text-slate-700 hover:text-blue-600 font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-sm shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Lobby</span>
@@ -262,15 +262,15 @@ export default function Game() {
           <VolumeControls />
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600">
+        <div className="flex items-center justify-center sm:justify-end gap-3 w-full sm:w-auto">
+          <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 shrink-0">
             <Gamepad2 className="w-5 h-5" />
           </div>
-          <div>
-            <h2 className="text-xs uppercase tracking-wider text-slate-500 font-mono font-semibold">
+          <div className="text-center sm:text-left">
+            <h2 className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-500 font-mono font-semibold">
               Room Control Center
             </h2>
-            <p className="text-lg font-bold text-slate-900 flex items-center gap-2 font-mono">
+            <p className="text-base sm:text-lg font-bold text-slate-900 flex items-center justify-center sm:justify-start gap-2 font-mono">
               <span>Room ID: #{roomId}</span>
             </p>
           </div>
@@ -633,19 +633,19 @@ export default function Game() {
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs text-slate-500">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-slate-500 mt-1">
                     <span>
                       Rounds: <strong className="text-slate-800">{g.total_round}</strong>
                     </span>
-                    <span>•</span>
+                    <span className="hidden xs:inline">•</span>
                     <span>
                       Choose Secs: <strong className="text-slate-800">{g.choosing_time || 30}s</strong>
                     </span>
-                    <span>•</span>
+                    <span className="hidden xs:inline">•</span>
                     <span>
                       Guess Secs: <strong className="text-slate-800">{g.guessing_time || 60}s</strong>
                     </span>
-                    <span>•</span>
+                    <span className="hidden xs:inline">•</span>
                     <span>
                       Theme: <strong className="text-slate-800 font-mono">
                         {themes.find((t) => t.id === g.theme_id)?.name || "Default"}
@@ -654,11 +654,11 @@ export default function Game() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 justify-end" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end border-t border-slate-100 md:border-none pt-3 md:pt-0" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={(e) => handleDeleteGame(g.id, e)}
                     disabled={deletingId === g.id}
-                    className="p-2.5 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 transition-all cursor-pointer flex items-center gap-1 text-xs font-semibold"
+                    className="p-2.5 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 transition-all cursor-pointer flex items-center justify-center gap-1 text-xs font-semibold flex-1 md:flex-initial"
                     title="Delete Match"
                   >
                     {deletingId === g.id ? (
@@ -666,14 +666,14 @@ export default function Game() {
                     ) : (
                       <>
                         <Trash2 className="w-4 h-4" />
-                        <span className="hidden sm:inline">Delete</span>
+                        <span>Delete</span>
                       </>
                     )}
                   </button>
 
                   <button
                     onClick={() => navigate(`${g.id}`)}
-                    className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-all font-bold text-xs flex items-center gap-2 cursor-pointer shadow-sm"
+                    className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-all font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm flex-1 md:flex-initial"
                   >
                     <span>Play Match</span>
                     <ArrowLeft className="w-3.5 h-3.5 rotate-180" />

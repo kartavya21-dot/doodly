@@ -114,33 +114,30 @@ export default function Room() {
   return (
     <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto flex flex-col gap-8">
       {/* Top Header Navigation */}
-      <header className="neon-card rounded-3xl p-5 border border-slate-200 bg-white/90 flex justify-between items-center shadow-lg shadow-slate-200/50 backdrop-blur-xl">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-sm">
+      <header className="neon-card rounded-3xl p-4 md:p-5 border border-slate-200 bg-white/90 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-lg shadow-slate-200/50 backdrop-blur-xl">
+        <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+          {/* <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-sm shrink-0">
             <Palette className="w-6 h-6" />
-          </div>
+          </div> */}
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl md:text-3xl font-extrabold tracking-wider font-mono">
-                <span className="text-blue-600">D</span>
-                <span className="text-red-500">o</span>
-                <span className="text-amber-500">o</span>
-                <span className="text-blue-600">d</span>
-                <span className="text-green-600">l</span>
-                <span className="text-red-500">y</span>
-                <span className="text-slate-800 ml-2">Lobby</span>
-              </h1>
-              <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
-            </div>
-            <p className="text-xs text-slate-500 font-medium">Join a drawing arena or create your own room</p>
+            <h1 className="text-xl md:text-2xl font-black tracking-tight text-slate-950 flex items-center justify-center sm:justify-start gap-2">
+              <span className="google-text-blue">D</span>
+              <span className="google-text-red">o</span>
+              <span className="google-text-yellow">o</span>
+              <span className="google-text-blue">d</span>
+              <span className="google-text-green">l</span>
+              <span className="google-text-red">y</span>
+            </h1>
+            <p className="text-xs text-slate-500 font-medium">Draw & Guess Playful Board</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto">
           <VolumeControls />
+          
           <button
             onClick={logout}
-            className="px-4 py-2.5 rounded-2xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-bold text-sm flex items-center gap-2 transition-all duration-200 active:scale-95 shadow-sm cursor-pointer"
+            className="px-4 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950 font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-slate-200 w-full sm:w-auto shrink-0"
           >
             <LogOut className="w-4 h-4" />
             <span>Logout</span>

@@ -68,10 +68,10 @@ export default function Auth() {
       <div className="w-full max-w-md relative z-10">
         {/* Brand Header */}
         <div className="text-center mb-8 flex flex-col items-center">
-          <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 shadow-lg shadow-slate-200 flex items-center justify-center mb-3 animate-bounce" style={{ animationDuration: '3s' }}>
+          {/* <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 shadow-lg shadow-slate-200 flex items-center justify-center mb-3 animate-bounce" style={{ animationDuration: '3s' }}>
             <Palette className="w-8 h-8 text-blue-600" />
           </div>
-          
+           */}
           {/* Google Colorized Title */}
           <div className="flex items-center gap-1">
             <h1 className="text-4xl font-extrabold tracking-wider font-mono">
@@ -82,7 +82,6 @@ export default function Auth() {
               <span className="text-green-600">l</span>
               <span className="text-red-500">y</span>
             </h1>
-            <Sparkles className="w-5 h-5 text-amber-500 animate-spin ml-1" style={{ animationDuration: '6s' }} />
           </div>
           <p className="text-xs font-bold tracking-widest text-slate-500 uppercase mt-1">
             Funky Multiplayer Doodling

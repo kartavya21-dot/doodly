@@ -49,9 +49,9 @@ export default function VolumeControls() {
   };
 
   return (
-    <div className="flex items-center gap-4 bg-slate-50 border border-slate-200 px-3.5 py-1.5 rounded-2xl shadow-sm text-xs shrink-0 select-none">
+    <div className="flex items-center gap-2 sm:gap-4 bg-slate-50 border border-slate-200 px-2 py-1.5 sm:px-3.5 sm:py-1.5 rounded-2xl shadow-sm text-xs shrink-0 select-none">
       {/* Music Volume Section */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1 sm:gap-1.5">
         <button
           onClick={toggleMusicMute}
           className="p-1 rounded-lg hover:bg-slate-200 text-slate-600 hover:text-blue-600 transition-colors cursor-pointer"
@@ -66,7 +66,7 @@ export default function VolumeControls() {
           step="0.05"
           value={musicVol}
           onChange={handleMusicChange}
-          className="w-16 h-1.5 rounded-lg bg-slate-200 appearance-none cursor-pointer accent-blue-600"
+          className="w-12 xs:w-14 sm:w-16 h-1.5 rounded-lg bg-slate-200 appearance-none cursor-pointer accent-blue-600"
           title={`Music Volume: ${Math.round(musicVol * 100)}%`}
         />
       </div>
@@ -75,7 +75,7 @@ export default function VolumeControls() {
       <div className="w-[1px] h-4 bg-slate-200" />
 
       {/* SFX Volume Section */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1 sm:gap-1.5">
         <button
           onClick={toggleSfxMute}
           className="p-1 rounded-lg hover:bg-slate-200 text-slate-600 hover:text-green-600 transition-colors cursor-pointer"
@@ -94,7 +94,7 @@ export default function VolumeControls() {
           step="0.05"
           value={sfxVol}
           onChange={handleSfxChange}
-          className="w-16 h-1.5 rounded-lg bg-slate-200 appearance-none cursor-pointer accent-green-600"
+          className="w-12 xs:w-14 sm:w-16 h-1.5 rounded-lg bg-slate-200 appearance-none cursor-pointer accent-green-600"
           title={`SFX Volume: ${Math.round(sfxVol * 100)}%`}
         />
       </div>
