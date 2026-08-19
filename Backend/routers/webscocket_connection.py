@@ -208,9 +208,19 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
     try:
         while True:
             data = await websocket.receive()
+
+            # IMPORTANT: handle disconnect explicitly
+            if data["type"] == "websocket.disconnect":
+                raise WebSocketDisconnect
+
             if "bytes" in data:
-                # Binary frame (DRAW data). Broadcast to other users (to_user=False)
-                await broadcast_message(connections[game_id], websocket, data["bytes"], to_user=False)
+                # Binary frame (DRAW data)
+                await broadcast_message(
+                    connections[game_id],
+                    websocket,
+                    data["bytes"],
+                    to_user=False
+                )
                 continue
 
             if "text" not in data:
@@ -487,67 +497,114 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                 )
 
     except WebSocketDisconnect:
+        print(f"\n===== DISCONNECT: {username} =====")
+
         game_is_started = False
         msg = {}
 
-        with Session(engine) as session:
-            game_user: GameUser = session.get(GameUser, (username, game_id))
-            game: Game = session.get(Game, game_id)
-            game_score: UserGameScore = session.get(UserGameScore, (username, game_id))
+        try:
+            # ---------------- DATABASE UPDATE ----------------
+            with Session(engine) as session:
+                game_user: GameUser = session.get(
+                    GameUser, (username, game_id)
+                )
 
-            game_is_started = game.is_started
+                game: Game = session.get(Game, game_id)
 
-            if game_is_started:
-                game_user.is_active = False
-                session.add(game_user)
-            else:
-                if game_user:
-                    session.delete(game_user)
-                    session.delete(game_score)
+                game_score: UserGameScore = session.get(
+                    UserGameScore, (username, game_id)
+                )
 
-            session.commit()
+                if not game:
+                    print("Game not found!")
+                    return
 
-        if game_is_started:
-            msg = {
-                "message": f"{username} lost connection.",
-                "username": username,
-                "type": "LOST_CONNECTION",
-            }
-        else:
-            msg = {
-                "message": f"{username} left game.",
-                "username": username,
-                "type": "LEFT_GAME",
-            }
+                game_is_started = game.is_started
 
-        print("************")
-        print(msg)
-        print("************")
+                print("Game started:", game_is_started)
+                print("GameUser:", game_user)
+                print("GameScore:", game_score)
 
-        await broadcast_message(connections[game_id], websocket, msg, to_user=False)
+                if game_is_started:
+                    # Player disconnected during game
+                    if game_user:
+                        game_user.is_active = False
+                        session.add(game_user)
 
-        if game_is_started:
+                    msg = {
+                        "message": f"{username} lost connection.",
+                        "username": username,
+                        "type": "LOST_CONNECTION",
+                    }
+
+                else:
+                    # Player left before game started
+                    if game_user:
+                        session.delete(game_user)
+
+                    if game_score:
+                        session.delete(game_score)
+
+                    msg = {
+                        "message": f"{username} left game.",
+                        "username": username,
+                        "type": "LEFT_GAME",
+                    }
+
+                session.commit()
+
+                print("Database updated successfully.")
+
+        except Exception as e:
+            print("!!!!!! DISCONNECT DATABASE ERROR !!!!!!")
+            print(type(e).__name__, e)
+            return
+
+        # ---------------- UPDATE MEMORY ----------------
+
+        if game_id in players_queue:
             for player in players_queue[game_id]:
                 if player["username"] == username:
                     player["is_active"] = False
                     break
 
-            connections[game_id].remove(websocket)
+        # ---------------- REMOVE SOCKET ----------------
 
-            # In case where all the user left the game, midway(after game is started) therefore delete it
-            if len(connections[game_id]) == 0:
+        if game_id in connections:
+            if websocket in connections[game_id]:
+                connections[game_id].remove(websocket)
 
-                with Session(engine) as session:
-                    game: Game = session.get(Game, game_id)
+        print("Connections remaining:", len(connections.get(game_id, [])))
+
+        # ---------------- SEND MESSAGE ----------------
+
+        print("Sending message:", msg)
+
+        if game_id in connections and connections[game_id]:
+            await broadcast_message(
+                connections[game_id],
+                websocket,
+                msg,
+                to_user=False,
+            )
+
+        # ---------------- END EMPTY GAME ----------------
+
+        if game_id in connections and len(connections[game_id]) == 0:
+
+            with Session(engine) as session:
+                game: Game = session.get(Game, game_id)
+
+                if game:
                     game.is_ended = True
                     session.add(game)
                     session.commit()
-                    session.refresh(game)
 
-                if game_id in game_timers:
-                    game_timers[game_id]["task"].cancel()
-                    del game_timers[game_id]
-                if game_id in connections:
-                    del connections[game_id]
-                if game_id in players_queue:
-                    del players_queue[game_id]
+            if game_id in game_timers:
+                game_timers[game_id]["task"].cancel()
+                del game_timers[game_id]
+
+            connections.pop(game_id, None)
+            players_queue.pop(game_id, None)
+
+        print(f"===== DISCONNECT COMPLETE: {username} =====\n")
