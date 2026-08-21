@@ -26,7 +26,7 @@ def upgrade() -> None:
         'themes',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-        sa.Column('is_preset', sa.Boolean(), nullable=False, server_default=sa.text('0')),
+        sa.Column('is_preset', sa.Boolean(), nullable=False, server_default=sa.text('false')),
         sa.Column('room_id', sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(['room_id'], ['rooms.id']),
         sa.PrimaryKeyConstraint('id'),
