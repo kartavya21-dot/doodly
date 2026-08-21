@@ -205,6 +205,23 @@ export default function Board({ color = "#0f172a", lineWidth = 4 }) {
     prevPoint.current = null;
   };
 
+  // Bind touch events manually to support non-passive listener execution
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !canDraw) return;
+
+    // Direct listener binding allows e.preventDefault() to work on touchmove in modern mobile browsers
+    canvas.addEventListener("touchstart", handleTouchStart, { passive: true });
+    canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
+    canvas.addEventListener("touchend", handleTouchEnd, { passive: true });
+
+    return () => {
+      canvas.removeEventListener("touchstart", handleTouchStart);
+      canvas.removeEventListener("touchmove", handleTouchMove);
+      canvas.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [canDraw, color, lineWidth]);
+
   return (
     <canvas
       ref={canvasRef}
@@ -212,9 +229,6 @@ export default function Board({ color = "#0f172a", lineWidth = 4 }) {
       onMouseMove={canDraw ? handleMouseMove : () => {}}
       onMouseUp={canDraw ? handleMouseUp : () => {}}
       onMouseLeave={canDraw ? handleMouseUp : () => {}}
-      onTouchStart={canDraw ? handleTouchStart : () => {}}
-      onTouchMove={canDraw ? handleTouchMove : () => {}}
-      onTouchEnd={canDraw ? handleTouchEnd : () => {}}
       className={`w-full h-full block bg-white rounded-xl ${
         canDraw ? "cursor-crosshair" : "cursor-not-allowed"
       }`}

@@ -26,6 +26,19 @@ const Playground = () => {
 
   const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    // Lock document body and html elements to prevent mobile browser overscroll and bounce-scrolling
+    const bodyClasses = ["overflow-hidden", "h-screen", "w-screen", "fixed"];
+    bodyClasses.forEach((c) => document.body.classList.add(c));
+    document.documentElement.classList.add("overflow-hidden");
+
+    return () => {
+      // Re-enable scrolling when leaving the match playground
+      bodyClasses.forEach((c) => document.body.classList.remove(c));
+      document.documentElement.classList.remove("overflow-hidden");
+    };
+  }, []);
+
   const fetchGame = async () => {
     try {
       const response = await getGame(gameId);
