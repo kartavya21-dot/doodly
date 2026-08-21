@@ -32,7 +32,7 @@ const ChatArea = ({ room }) => {
   };
 
   return (
-    <div className="w-full h-[calc(100vh-320px)] lg:h-[calc(100vh-140px)] lg:min-h-[540px] lg:max-h-[760px] neon-card rounded-3xl p-4 border border-slate-200 bg-white/95 shadow-lg backdrop-blur-xl flex flex-col justify-between gap-3">
+    <div className="w-full flex-1 min-h-0 lg:h-[calc(100vh-140px)] lg:min-h-[540px] lg:max-h-[760px] neon-card rounded-3xl p-4 border border-slate-200 bg-white/95 shadow-lg backdrop-blur-xl flex flex-col justify-between gap-3">
       {/* Header */}
       <div className="flex items-center justify-between pb-2 border-b border-slate-200">
         <div className="flex items-center gap-2">

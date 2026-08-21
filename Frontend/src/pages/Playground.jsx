@@ -68,7 +68,7 @@ const Playground = () => {
   const isMatchEnded = game.is_ended || game.current_round >= game.total_round;
 
   return (
-    <div className="min-h-screen p-2 md:p-3 max-w-7xl mx-auto flex flex-col gap-2">
+    <div className="h-[100dvh] md:h-auto md:min-h-screen p-1.5 md:p-3 max-w-7xl mx-auto flex flex-col gap-1.5 md:gap-2 overflow-hidden md:overflow-visible">
       <GameSocketProvider game={game} setGame={setGame}>
         {/* Animated Round End Popup Modal during active rounds */}
         {!isMatchEnded && <RoundEndModal />}
@@ -161,14 +161,14 @@ const Playground = () => {
 
         {/* Active Match View: Canvas & Chat Side-by-Side (ONLY shown while game is active) */}
         {game && game.is_started && !isMatchEnded && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 items-start">
+          <div className="flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-12 gap-2 md:gap-2.5 overflow-hidden">
             {/* Left Column: Canvas */}
-            <div className="lg:col-span-7 xl:col-span-8 flex flex-col">
+            <div className="lg:col-span-7 xl:col-span-8 flex flex-col min-h-0 shrink-0 lg:shrink">
               <Canvas game={game} />
             </div>
 
             {/* Right Column: Live Chat Area */}
-            <div className="lg:col-span-5 xl:col-span-4">
+            <div className="lg:col-span-5 xl:col-span-4 flex-1 min-h-0 flex flex-col">
               <ChatArea room={room} setLogs={() => {}} game={game} setGame={setGame} />
             </div>
           </div>
