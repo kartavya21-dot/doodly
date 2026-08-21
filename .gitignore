@@ -1,3 +1,4 @@
 Backend/venv
 Backend/database.db
 ./what_i_am_thinking.md
+*/.env

@@ -1,12 +1,17 @@
 import axios from 'axios'
 import { logout } from './auth';
 
-const BASEURL = 'http://localhost:8000'
+const BASEURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export const api = axios.create({
     baseURL: BASEURL,
     withCredentials: true,
 });
+
+export const getWsUrl = (gameId, token) => {
+  const wsBase = BASEURL.replace(/^http/, 'ws');
+  return `${wsBase}/ws?token=${token}&game_id=${gameId}`;
+};
 
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem("access_token");

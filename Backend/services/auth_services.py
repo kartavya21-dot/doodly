@@ -7,7 +7,12 @@ from sqlmodel import select
 from db.session import Session, get_session
 from db.models import User
 
-SECRET_KEY = "09d25e094faa6ca2556c81"
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+SECRET_KEY = os.getenv("JWT_SECRET_KEY") or "09d25e094faa6ca2556c81"
 
 def hash_password(password: str) -> str:
     # Convert to bytes, salt it, hash it, return as string
@@ -60,7 +65,3 @@ def get_current_user(
         return user
     except:
         raise HTTPException(status_code=401, detail="Invalid token")
-    
-# eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxOTU3MjE2NDA3fQ.-30yb_YsIihmnYRxWsusFRP0Hav52puEKCFR3XNyQuQ
-# eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqb2huIiwidHlwZSI6ImFjY2VzcyIsImV4cCI6MTk1NzIxNjM0OH0.44X-kvrbIRzGg4Np43yroHrO8Sc4SNxG5U0mnOyCP1Q
-# eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzZWFuIiwidHlwZSI6ImFjY2VzcyIsImV4cCI6MTk1NzIxNjM4MH0.Pxk_z_9G2L0npFfmFhyTyjJ1dAsfGYR0CYYUDgBt9og

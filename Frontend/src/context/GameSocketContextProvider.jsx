@@ -8,6 +8,7 @@ import {
 } from "react";
 import { useUser } from "./UserContextProvider";
 import { playSound } from "../utils/soundManager";
+import { getWsUrl } from "../services";
 
 const GameSocketContext = createContext(null);
 
@@ -266,9 +267,7 @@ export function GameSocketProvider({ game, setGame, children }) {
     if (!game) return;
     const token = localStorage.getItem("access_token");
     if (!socketRef.current) {
-      const ws = new WebSocket(
-        `ws://localhost:8000/ws?token=${token}&game_id=${game.id}`,
-      );
+      const ws = new WebSocket(getWsUrl(game.id, token));
       ws.binaryType = "arraybuffer";
       ws.onopen = () => setIsConnected(true);
       ws.onclose = () => setIsConnected(false);
