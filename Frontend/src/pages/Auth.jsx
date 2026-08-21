@@ -31,6 +31,24 @@ export default function Auth() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+
+    // Frontend validation for Registration Mode
+    if (!isLoginMode) {
+      const password = formData.password;
+      if (password.length < 8) {
+        playSound("error");
+        setError("Password must be at least 8 characters long.");
+        return;
+      }
+      const hasLetter = /[a-zA-Z]/.test(password);
+      const hasNumber = /[0-9]/.test(password);
+      if (!hasLetter || !hasNumber) {
+        playSound("error");
+        setError("Password must contain both letters and numbers.");
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -49,10 +67,15 @@ export default function Auth() {
       navigate("/room");
     } catch (err) {
       playSound("error");
-      setError(
-        err.response?.data?.detail ||
-          "Authentication failed. Please try again.",
-      );
+      let errMsg = "Authentication failed. Please try again.";
+      if (err.response?.data?.detail) {
+        if (Array.isArray(err.response.data.detail)) {
+          errMsg = err.response.data.detail.map((e) => e.msg).join(", ");
+        } else {
+          errMsg = err.response.data.detail;
+        }
+      }
+      setError(errMsg);
     } finally {
       setLoading(false);
     }
@@ -176,6 +199,11 @@ export default function Auth() {
                   className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm font-medium"
                 />
               </div>
+              {!isLoginMode && (
+                <p className="text-[10px] text-slate-500 mt-1 pl-1">
+                  Must be at least 8 characters with both letters & numbers.
+                </p>
+              )}
             </div>
 
             <button
