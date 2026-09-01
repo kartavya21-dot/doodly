@@ -27,6 +27,9 @@ const COLOR_PALETTE = [
   "#ffffff"  // 9: Eraser
 ];
 
+// Must match the REFERENCE_WIDTH in Board.jsx
+const REFERENCE_WIDTH = 1000;
+
 export function GameSocketProvider({ game, setGame, children }) {
   const socketRef = useRef(null);
   const currentUser = useUser().username;
@@ -170,6 +173,7 @@ export function GameSocketProvider({ game, setGame, children }) {
             y0: data.y0 * canvas.height,
             x1: data.x1 * canvas.width,
             y1: data.y1 * canvas.height,
+            lineWidth: (data.lineWidth / REFERENCE_WIDTH) * canvas.width,
           };
           drawSegment(deNormalizedData);
         }
@@ -285,12 +289,14 @@ export function GameSocketProvider({ game, setGame, children }) {
             const x1_norm = view.getUint16(5) / 65535;
             const y1_norm = view.getUint16(7) / 65535;
             const colorIndex = view.getUint8(9);
-            const lineWidth = view.getUint8(10);
+            const normalizedLW = view.getUint8(10);
 
             const color = COLOR_PALETTE[colorIndex] || "#0f172a";
 
             const canvas = canvasRef.current;
             if (canvas) {
+              // Scale lineWidth from reference width to the receiver's actual canvas width
+              const lineWidth = (normalizedLW / REFERENCE_WIDTH) * canvas.width;
               const deNormalizedData = {
                 x0: x0_norm * canvas.width,
                 y0: y0_norm * canvas.height,

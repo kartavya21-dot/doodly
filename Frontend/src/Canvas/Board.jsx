@@ -14,6 +14,10 @@ const COLOR_PALETTE = [
   "#ffffff"  // 9: Eraser
 ];
 
+// Reference canvas width used to normalize stroke widths across different screen sizes.
+// Strokes are encoded as if drawn on a 1000px-wide canvas, then scaled to the receiver's actual width.
+const REFERENCE_WIDTH = 1000;
+
 export default function Board({ color = "#0f172a", lineWidth = 4 }) {
   const canvasRef = useRef(null);
   const { registerCanvas, sendMessage, drawSegment, userPlaying, isSent, game } = useGameSocket();
@@ -108,8 +112,9 @@ export default function Board({ color = "#0f172a", lineWidth = 4 }) {
     view.setUint16(7, Math.round(y1_norm * 65535));
     // Byte 9: Color Index
     view.setUint8(9, validColorIndex);
-    // Byte 10: Line Width
-    view.setUint8(10, lineWidth);
+    // Byte 10: Normalized Line Width (scaled to REFERENCE_WIDTH)
+    const normalizedLW = Math.round((lineWidth / canvas.width) * REFERENCE_WIDTH);
+    view.setUint8(10, Math.min(normalizedLW, 255));
 
     // Draw locally first using absolute coordinates
     drawSegment(localDrawData);
@@ -184,8 +189,9 @@ export default function Board({ color = "#0f172a", lineWidth = 4 }) {
     view.setUint16(7, Math.round(y1_norm * 65535));
     // Byte 9: Color Index
     view.setUint8(9, validColorIndex);
-    // Byte 10: Line Width
-    view.setUint8(10, lineWidth);
+    // Byte 10: Normalized Line Width (scaled to REFERENCE_WIDTH)
+    const normalizedLW = Math.round((lineWidth / canvas.width) * REFERENCE_WIDTH);
+    view.setUint8(10, Math.min(normalizedLW, 255));
 
     // Draw locally first using absolute coordinates
     drawSegment(localDrawData);
