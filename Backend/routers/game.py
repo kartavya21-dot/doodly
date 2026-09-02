@@ -15,7 +15,8 @@ def create_game(room_id: int, game: GameCreate, session: SessionDep,  user: User
     if not db_room:
         raise HTTPException(status_code=404, detail="Room doesnt exist")
     
-    if user not in db_room.users:
+    user_in_room = user.username in [u.username for u in db_room.users] or user.username == db_room.admin_username
+    if not user_in_room:
         raise HTTPException(status_code=403, detail="User not authorised")
 
     db_game = Game.model_validate(game)
@@ -35,7 +36,8 @@ def get_players(game_id: int, session: SessionDep, user: User = Depends(get_curr
     
     db_room = session.get(Room, db_game.room_id)
 
-    if user not in db_room.users:
+    user_in_room = user.username in [u.username for u in db_room.users] or user.username == db_room.admin_username
+    if not user_in_room:
         raise HTTPException(status_code=403, detail="User not authorised")
 
     return db_game
@@ -49,7 +51,8 @@ def get_game_players(game_id: int, session: SessionDep, user: User = Depends(get
     
     db_room = session.get(Room, db_game.room_id)
 
-    if user not in db_room.users:
+    user_in_room = user.username in [u.username for u in db_room.users] or user.username == db_room.admin_username
+    if not user_in_room:
         raise HTTPException(status_code=403, detail="User not authorised")
     
     db_game_user:List[GameUserBase] = session.exec(select(GameUser.user_username, GameUser.turn, GameUser.is_active).where(GameUser.game_id == game_id)).all()
@@ -74,7 +77,8 @@ def delete_game(game_id: int, session: SessionDep, user: User = Depends(get_curr
 
     db_room = session.get(Room, db_game.room_id)
 
-    if user not in db_room.users:
+    user_in_room = user.username in [u.username for u in db_room.users] or user.username == db_room.admin_username
+    if not user_in_room:
         raise HTTPException(status_code=403, detail="Only room members can delete games")
 
     session.delete(db_game)
@@ -90,7 +94,8 @@ def get_game_scores(game_id: int, session: SessionDep, user: User = Depends(get_
 
     db_room = session.get(Room, db_game.room_id)
 
-    if user not in db_room.users:
+    user_in_room = user.username in [u.username for u in db_room.users] or user.username == db_room.admin_username
+    if not user_in_room:
         raise HTTPException(status_code=403, detail="Only room members can view scores")
 
     return db_game.scores

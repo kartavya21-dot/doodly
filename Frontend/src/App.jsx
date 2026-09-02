@@ -75,7 +75,15 @@ export default function App() {
             }
           />
           <Route
-            path="room/:roomId/game/:gameId"
+            path="/room/:roomId/game/:gameId"
+            element={
+              <AnimatedPage>
+                <Playground />
+              </AnimatedPage>
+            }
+          />
+          <Route
+            path="/room/:roomId/:gameId"
             element={
               <AnimatedPage>
                 <Playground />

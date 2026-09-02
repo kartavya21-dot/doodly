@@ -28,7 +28,9 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !original._retry && !original.url.endsWith("/refresh")) {
       original._retry = true;
 
-      const refreshToken = localStorage.getItem("refreshToken");
+      const refreshToken =
+        localStorage.getItem("refresh_token") ||
+        localStorage.getItem("refreshToken");
       if (!refreshToken) {
         logout();
         return Promise.reject(error);
@@ -39,7 +41,9 @@ api.interceptors.response.use(
           refresh_token: refreshToken,
         });
 
+        localStorage.setItem("access_token", res.data.access_token);
         localStorage.setItem("accessToken", res.data.access_token);
+        window.dispatchEvent(new Event("user-auth-change"));
         original.headers.Authorization =
           `Bearer ${res.data.access_token}`;
 

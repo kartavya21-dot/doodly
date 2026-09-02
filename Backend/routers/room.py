@@ -60,7 +60,8 @@ async def get_room_by_id(
     if not db_room:
         raise HTTPException(status_code=404, detail="Room not found")
 
-    if user not in db_room.users:
+    user_in_room = user.username in [u.username for u in db_room.users] or user.username == db_room.admin_username
+    if not user_in_room:
         raise HTTPException(
             status_code=403, detail="User not authorized to view this room"
         )
@@ -114,7 +115,8 @@ def get_room_games(
 ):
     db_room = session.get(Room, room_id)
 
-    if user not in db_room.users:
+    user_in_room = user.username in [u.username for u in db_room.users] or user.username == db_room.admin_username
+    if not user_in_room:
         raise HTTPException(status_code=403, detail="Join the room first")
 
     return db_room.games

@@ -13,9 +13,15 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+const isSameUser = (u1, u2) => {
+  if (!u1 || !u2) return false;
+  return String(u1).trim().toLowerCase() === String(u2).trim().toLowerCase();
+};
+
 const LobbyArea = ({ setLogs, room }) => {
   const { sendMessage, game, lobbyPlayers, setLobbyPlayers } = useGameSocket();
-  const currentUser = useUser().username;
+  const { username } = useUser();
+  const currentUser = username || getStoredUsername() || localStorage.getItem("username");
 
   const fetchGamePlayers = async () => {
     try {
@@ -117,12 +123,13 @@ const LobbyArea = ({ setLogs, room }) => {
 
         <div className="flex flex-col gap-3">
           {Array.from(lobbyPlayers || [])?.map((player) => {
-            const isAdmin = player.username === room?.admin_username;
-            const isMe = player.username === currentUser;
+            const playerName = player.username || player.user_username;
+            const isAdmin = isSameUser(playerName, room?.admin_username);
+            const isMe = isSameUser(playerName, currentUser);
 
             return (
               <div
-                key={player.username || player.user_username}
+                key={playerName}
                 className={`flex justify-between items-center px-4 py-3 rounded-xl border transition-all duration-200 ${
                   isMe
                     ? "bg-white border-blue-400 shadow-sm"
@@ -183,7 +190,7 @@ const LobbyArea = ({ setLogs, room }) => {
           <span>Join Arena</span>
         </button>
 
-        {currentUser === room?.admin_username && (
+        {isSameUser(currentUser, room?.admin_username) && (
           <button
             onClick={handleStart}
             className="px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm flex items-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"

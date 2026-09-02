@@ -599,7 +599,7 @@ export default function Game() {
             {displayedGames.map((g) => (
               <div
                 key={g.id}
-                onClick={() => navigate(`${g.id}`)}
+                onClick={() => navigate(`/room/${roomId}/game/${g.id}`)}
                 className="neon-card rounded-2xl p-5 border border-slate-200 bg-white hover:border-blue-400 transition-all cursor-pointer group flex flex-col md:flex-row justify-between md:items-center gap-4 relative overflow-hidden shadow-sm"
               >
                 <div>
@@ -672,7 +672,7 @@ export default function Game() {
                   </button>
 
                   <button
-                    onClick={() => navigate(`${g.id}`)}
+                    onClick={() => navigate(`/room/${roomId}/game/${g.id}`)}
                     className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-all font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm flex-1 md:flex-initial"
                   >
                     <span>Play Match</span>

@@ -39,31 +39,34 @@ const Playground = () => {
     };
   }, []);
 
-  const fetchGame = async () => {
-    try {
-      const response = await getGame(gameId);
-      setGame(response);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const fetchRoom = async () => {
-    try {
-      const response = await getRoomById(roomId);
-      setRoom(response);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   useEffect(() => {
+    let isMounted = true;
+
     const init = async () => {
       setIsLoading(true);
-      await Promise.all([fetchGame(), fetchRoom()]);
-      setIsLoading(false);
+      try {
+        const gameData = await getGame(gameId);
+        if (isMounted) setGame(gameData);
+
+        const targetRoomId = roomId || gameData?.room_id;
+        if (targetRoomId) {
+          const roomData = await getRoomById(targetRoomId);
+          if (isMounted) setRoom(roomData);
+        }
+      } catch (err) {
+        console.error("Failed to load match or room:", err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
     };
-    init();
+
+    if (gameId) {
+      init();
+    }
+
+    return () => {
+      isMounted = false;
+    };
   }, [gameId, roomId]);
 
   if (isLoading || !gameId || !game) {

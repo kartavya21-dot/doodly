@@ -10,6 +10,7 @@ export const login = async (credentials) => {
   localStorage.setItem("username", credentials.username);
   localStorage.setItem("access_token", response.data.access_token);
   localStorage.setItem("refresh_token", response.data.refresh_token);
+  window.dispatchEvent(new Event("user-auth-change"));
   return response.data;
 };
 
@@ -31,5 +32,6 @@ export const logout = () => {
   localStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");
   localStorage.removeItem("username");
+  window.dispatchEvent(new Event("user-auth-change"));
   window.location.href = "/";
 };
