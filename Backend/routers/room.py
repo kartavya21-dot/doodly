@@ -62,7 +62,7 @@ async def get_room_by_id(
 
     if user not in db_room.users:
         raise HTTPException(
-            status_code=401, detail="User not authorized to view this room"
+            status_code=403, detail="User not authorized to view this room"
         )
 
     return db_room
@@ -72,10 +72,7 @@ async def get_room_by_id(
 async def join_room(
     session: SessionDep, room: RoomJoin, user: User = Depends(get_current_user)
 ):
-    print("*\n"*10)
-    print(user)
     db_room = session.get(Room, int(room.room_id))
-    print(db_room)
     if not db_room:
         raise HTTPException(status_code=404, detail="Room not found")
 
@@ -88,7 +85,7 @@ async def join_room(
         if db_room.password == room.password:
             db_room.users.append(user)
         else:
-            raise HTTPException(status_code=401, detail="Incorrect password")
+            raise HTTPException(status_code=403, detail="Incorrect room password")
 
     session.add(db_room)
     session.commit()
@@ -118,6 +115,6 @@ def get_room_games(
     db_room = session.get(Room, room_id)
 
     if user not in db_room.users:
-        raise HTTPException(status_code=401, detail="Join the room first")
+        raise HTTPException(status_code=403, detail="Join the room first")
 
     return db_room.games
