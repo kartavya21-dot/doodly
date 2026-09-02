@@ -30,7 +30,7 @@ def create_access_token(username: str):
     payload = {
         "sub": username,
         "type": "access",
-        "exp": datetime.utcnow() + timedelta(minutes=3000000)
+        "exp": datetime.utcnow() + timedelta(minutes=30)
     }
 
     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")

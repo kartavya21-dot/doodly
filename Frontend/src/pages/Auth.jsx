@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { login, register } from "../services/auth";
 import { playSound } from "../utils/soundManager";
@@ -23,6 +23,14 @@ export default function Auth() {
   });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // Auto-redirect to /room if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      navigate("/room", { replace: true });
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
