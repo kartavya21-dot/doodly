@@ -6,7 +6,7 @@ import {
   useState,
   useCallback,
 } from "react";
-import { useUser } from "./UserContextProvider";
+import { useUser, getStoredUsername } from "./UserContextProvider";
 import { playSound } from "../utils/soundManager";
 import { getWsUrl } from "../services";
 
@@ -98,6 +98,31 @@ export function GameSocketProvider({ game, setGame, children }) {
       if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
         socketRef.current.send(data);
       } else {
+        if (data && typeof data === "object") {
+          const needsUsername =
+            "username" in data ||
+            ["JOIN", "START", "GUESS", "CHOOSE_WORD"].includes(data.type);
+
+          if (needsUsername) {
+            const resolvedUsername =
+              (data.username && data.username !== "null" && data.username !== "undefined"
+                ? data.username
+                : null) ||
+              currentUser ||
+              getStoredUsername();
+
+            if (!resolvedUsername) {
+              console.warn(
+                "WebSocket message blocked: username is null/missing for message:",
+                data
+              );
+              alert("Username not found. Please try again joining.");
+              return;
+            }
+
+            data.username = resolvedUsername;
+          }
+        }
         socketRef.current.send(JSON.stringify(data));
       }
     }

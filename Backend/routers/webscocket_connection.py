@@ -229,18 +229,22 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
             msg = json.loads(data["text"])
             # ---------------- JOIN ----------------
             if msg["type"] == "JOIN":
+                effective_username = msg.get("username") or username
+                if not effective_username:
+                    continue
+
                 with Session(engine) as session:
                     game: Game = session.get(Game, game_id)
-                    game_user: GameUser = session.get(GameUser, (username, game_id))
+                    game_user: GameUser = session.get(GameUser, (effective_username, game_id))
 
                     if game_user:
                         game_user.is_active = True
                     else:
                         game.scores.append(
-                            UserGameScore(user_username=username, game_id=game_id)
+                            UserGameScore(user_username=effective_username, game_id=game_id)
                         )
                         game_user: GameUser = GameUser(
-                            user_username=username,
+                            user_username=effective_username,
                             game_id=game_id,
                             turn=0,
                             is_active=True,
@@ -251,8 +255,8 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                     session.refresh(game_user)
 
                 new_msg = {
-                    "message": f"{msg['username']} joined the game",
-                    "username": msg["username"],
+                    "message": f"{effective_username} joined the game",
+                    "username": effective_username,
                     "type": "JOIN",
                 }
 
@@ -410,9 +414,10 @@ async def websocket_(websocket: WebSocket, token: str, game_id: int):
                                 "username"
                             ]
 
+                            guesser = msg.get("username") or username
                             new_msg = {
-                                "message": f"{msg['username']} guessed the word",
-                                "username": msg["username"],
+                                "message": f"{guesser} guessed the word",
+                                "username": guesser,
                                 # "next_player": current_player_username,
                                 "type": "ROUND_END",
                                 "score": [

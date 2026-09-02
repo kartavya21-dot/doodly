@@ -1,7 +1,8 @@
-import React, { useEffect } from "react";
-import { useUser } from "../context/UserContextProvider";
+import React, { useEffect, useState } from "react";
+import { useUser, getStoredUsername } from "../context/UserContextProvider";
 import { useGameSocket } from "../context/GameSocketContextProvider";
 import { getGamePlayers } from "../services/game";
+import { playSound } from "../utils/soundManager";
 import {
   Users,
   UserCheck,
@@ -9,6 +10,7 @@ import {
   Crown,
   Sparkles,
   UserPlus,
+  AlertCircle,
 } from "lucide-react";
 
 const LobbyArea = ({ setLogs, room }) => {
@@ -36,6 +38,8 @@ const LobbyArea = ({ setLogs, room }) => {
     }
   };
 
+  const [joinError, setJoinError] = useState(null);
+
   useEffect(() => {
     if (room && game) {
       fetchGamePlayers();
@@ -43,16 +47,42 @@ const LobbyArea = ({ setLogs, room }) => {
   }, [room, game]);
 
   const handleJoin = () => {
+    const validUsername =
+      currentUser ||
+      getStoredUsername() ||
+      localStorage.getItem("username");
+
+    if (!validUsername || validUsername === "null" || validUsername === "undefined") {
+      playSound("error");
+      setJoinError("Username not found. Please try again joining.");
+      setTimeout(() => setJoinError(null), 4000);
+      return;
+    }
+
+    setJoinError(null);
     sendMessage({
       type: "JOIN",
-      username: currentUser,
+      username: validUsername,
     });
   };
 
   const handleStart = () => {
+    const validUsername =
+      currentUser ||
+      getStoredUsername() ||
+      localStorage.getItem("username");
+
+    if (!validUsername || validUsername === "null" || validUsername === "undefined") {
+      playSound("error");
+      setJoinError("Username not found. Please try again joining.");
+      setTimeout(() => setJoinError(null), 4000);
+      return;
+    }
+
+    setJoinError(null);
     sendMessage({
       type: "START",
-      username: currentUser,
+      username: validUsername,
     });
   };
 
@@ -163,6 +193,14 @@ const LobbyArea = ({ setLogs, room }) => {
           </button>
         )}
       </div>
+
+      {/* Error notification banner */}
+      {joinError && (
+        <div className="mt-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold animate-fade-in shadow-sm">
+          <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+          <span>{joinError}</span>
+        </div>
+      )}
     </div>
   );
 };
