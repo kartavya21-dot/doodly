@@ -59,11 +59,37 @@ export function GameSocketProvider({ game, setGame, children }) {
   const [choosingPlayer, setChoosingPlayer] = useState(null);
 
   const canvasRef = useRef(null);
+  const drawHistoryRef = useRef([]);
+
+  const redrawHistory = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (const seg of drawHistoryRef.current) {
+      ctx.strokeStyle = seg.color;
+      ctx.lineWidth = (seg.normalizedLW / REFERENCE_WIDTH) * canvas.width;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(seg.x0 * canvas.width, seg.y0 * canvas.height);
+      ctx.lineTo(seg.x1 * canvas.width, seg.y1 * canvas.height);
+      ctx.stroke();
+    }
+  }, []);
+
+  const addDrawHistory = useCallback((seg) => {
+    drawHistoryRef.current.push(seg);
+  }, []);
 
   const clearCanvas = useCallback(() => {
+    drawHistoryRef.current = [];
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext("2d");
-      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      ctx?.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     }
   }, []);
 
@@ -71,10 +97,10 @@ export function GameSocketProvider({ game, setGame, children }) {
     (canvas) => {
       canvasRef.current = canvas?.current ?? null;
       if (canvasRef.current) {
-        clearCanvas();
+        redrawHistory();
       }
     },
-    [clearCanvas],
+    [redrawHistory],
   );
 
   const drawSegment = (data) => {
@@ -190,6 +216,19 @@ export function GameSocketProvider({ game, setGame, children }) {
       }
 
       case "DRAW": {
+        const normalizedLW =
+          data.normalizedLW ||
+          (data.lineWidth ? Math.round((data.lineWidth / REFERENCE_WIDTH) * 1000) : 4);
+
+        drawHistoryRef.current.push({
+          x0: data.x0,
+          y0: data.y0,
+          x1: data.x1,
+          y1: data.y1,
+          color: data.color,
+          normalizedLW,
+        });
+
         const canvas = canvasRef.current;
         if (canvas) {
           const deNormalizedData = {
@@ -198,7 +237,7 @@ export function GameSocketProvider({ game, setGame, children }) {
             y0: data.y0 * canvas.height,
             x1: data.x1 * canvas.width,
             y1: data.y1 * canvas.height,
-            lineWidth: (data.lineWidth / REFERENCE_WIDTH) * canvas.width,
+            lineWidth: (normalizedLW / REFERENCE_WIDTH) * canvas.width,
           };
           drawSegment(deNormalizedData);
         }
@@ -318,6 +357,15 @@ export function GameSocketProvider({ game, setGame, children }) {
 
             const color = COLOR_PALETTE[colorIndex] || "#0f172a";
 
+            drawHistoryRef.current.push({
+              x0: x0_norm,
+              y0: y0_norm,
+              x1: x1_norm,
+              y1: y1_norm,
+              color,
+              normalizedLW,
+            });
+
             const canvas = canvasRef.current;
             if (canvas) {
               // Scale lineWidth from reference width to the receiver's actual canvas width
@@ -389,6 +437,8 @@ export function GameSocketProvider({ game, setGame, children }) {
         registerCanvas,
         drawSegment,
         clearCanvas,
+        redrawHistory,
+        addDrawHistory,
 
         sendMessage,
       }}

@@ -20,7 +20,16 @@ const REFERENCE_WIDTH = 1000;
 
 export default function Board({ color = "#0f172a", lineWidth = 4 }) {
   const canvasRef = useRef(null);
-  const { registerCanvas, sendMessage, drawSegment, userPlaying, isSent, game } = useGameSocket();
+  const {
+    registerCanvas,
+    sendMessage,
+    drawSegment,
+    redrawHistory,
+    addDrawHistory,
+    userPlaying,
+    isSent,
+    game,
+  } = useGameSocket();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -29,20 +38,52 @@ export default function Board({ color = "#0f172a", lineWidth = 4 }) {
     const resizeCanvas = () => {
       const parent = canvas.parentElement;
       if (parent) {
-        canvas.width = parent.clientWidth;
-        canvas.height = parent.clientHeight;
+        const newW = parent.clientWidth;
+        const newH = parent.clientHeight;
+        if (
+          newW > 0 &&
+          newH > 0 &&
+          (canvas.width !== newW || canvas.height !== newH)
+        ) {
+          canvas.width = newW;
+          canvas.height = newH;
+          redrawHistory();
+        }
       }
     };
 
     resizeCanvas();
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width: newW, height: newH } = entry.contentRect;
+        const roundedW = Math.round(newW);
+        const roundedH = Math.round(newH);
+        if (
+          roundedW > 0 &&
+          roundedH > 0 &&
+          (canvas.width !== roundedW || canvas.height !== roundedH)
+        ) {
+          canvas.width = roundedW;
+          canvas.height = roundedH;
+          redrawHistory();
+        }
+      }
+    });
+
+    if (canvas.parentElement) {
+      resizeObserver.observe(canvas.parentElement);
+    }
+
     window.addEventListener("resize", resizeCanvas);
     registerCanvas(canvasRef);
 
     return () => {
+      resizeObserver.disconnect();
       window.removeEventListener("resize", resizeCanvas);
       registerCanvas(null);
     };
-  }, [registerCanvas]);
+  }, [registerCanvas, redrawHistory]);
 
   const isDrawing = useRef(false);
   const prevPoint = useRef(null);
@@ -113,11 +154,23 @@ export default function Board({ color = "#0f172a", lineWidth = 4 }) {
     // Byte 9: Color Index
     view.setUint8(9, validColorIndex);
     // Byte 10: Normalized Line Width (scaled to REFERENCE_WIDTH)
-    const normalizedLW = Math.round((lineWidth / canvas.width) * REFERENCE_WIDTH);
-    view.setUint8(10, Math.min(normalizedLW, 255));
+    const normalizedLW = Math.min(
+      Math.round((lineWidth / canvas.width) * REFERENCE_WIDTH),
+      255
+    );
+    view.setUint8(10, normalizedLW);
 
     // Draw locally first using absolute coordinates
     drawSegment(localDrawData);
+    // Record to draw history
+    addDrawHistory({
+      x0: x0_norm,
+      y0: y0_norm,
+      x1: x1_norm,
+      y1: y1_norm,
+      color: color,
+      normalizedLW: normalizedLW,
+    });
     // Broadcast binary drawing coordinates
     sendMessage(buffer);
 
@@ -190,11 +243,23 @@ export default function Board({ color = "#0f172a", lineWidth = 4 }) {
     // Byte 9: Color Index
     view.setUint8(9, validColorIndex);
     // Byte 10: Normalized Line Width (scaled to REFERENCE_WIDTH)
-    const normalizedLW = Math.round((lineWidth / canvas.width) * REFERENCE_WIDTH);
-    view.setUint8(10, Math.min(normalizedLW, 255));
+    const normalizedLW = Math.min(
+      Math.round((lineWidth / canvas.width) * REFERENCE_WIDTH),
+      255
+    );
+    view.setUint8(10, normalizedLW);
 
     // Draw locally first using absolute coordinates
     drawSegment(localDrawData);
+    // Record to draw history
+    addDrawHistory({
+      x0: x0_norm,
+      y0: y0_norm,
+      x1: x1_norm,
+      y1: y1_norm,
+      color: color,
+      normalizedLW: normalizedLW,
+    });
     // Broadcast binary drawing coordinates
     sendMessage(buffer);
 
